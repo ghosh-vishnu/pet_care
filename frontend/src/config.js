@@ -34,3 +34,4 @@ export const setPetId = (petId) => {
   localStorage.setItem('pet_id', petId);
 };
 
+

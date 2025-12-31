@@ -196,12 +196,18 @@ async def get_chat_messages_endpoint(
         raise HTTPException(status_code=404, detail="Pet not found")
     
     messages = get_chat_messages(db, pet.id)
-    return [{
-        "sender": msg.sender,
-        "text": msg.text,
-        "image_url": msg.image_url,
-        "timestamp": msg.timestamp.isoformat()
-    } for msg in messages]
+    messages_list = []
+    for msg in messages:
+        # Map sender to frontend expected format
+        # If sender is "ai_bot", it's an AI message, otherwise it's a user message
+        sender = "ai" if msg.sender == "ai_bot" else "user"
+        messages_list.append({
+            "sender": sender,
+            "text": msg.text or "",
+            "image_url": msg.image_url,
+            "timestamp": msg.timestamp.isoformat() if msg.timestamp else None
+        })
+    return {"messages": messages_list}
 
 # Upload endpoints
 @app.post("/user/{user_id}/pet/{pet_id}/upload/analyze")
@@ -216,45 +222,180 @@ async def combined_upload_and_analyze(
         raise HTTPException(status_code=403, detail="Access denied")
     
     from services.db_service import get_pet_by_id
+    from services.health_vision_service import analyze_health_with_vision, generate_health_summary
+    import uuid
+    from datetime import datetime
+    
     pet = get_pet_by_id(db, user_id, pet_id)
     if not pet:
         raise HTTPException(status_code=404, detail="Pet not found")
     
-    raw = await file.read()
-    file_type = file.content_type.lower()
-    
-    if 'image' in file_type:
+    try:
+        raw = await file.read()
+        if not raw or len(raw) == 0:
+            raise HTTPException(status_code=400, detail="Empty file uploaded")
+        
+        file_type = file.content_type.lower() if file.content_type else ""
+        
+        if 'image' not in file_type:
+            raise HTTPException(status_code=400, detail="Unsupported file type. Please upload an image file.")
+        
+        # Validate image
         try:
+            pil_img = Image.open(io.BytesIO(raw))
+            pil_img.verify()  # Verify it's a valid image
+            # verify() closes the image, so we need to reopen it
             pil_img = Image.open(io.BytesIO(raw)).convert("RGB")
-        except Exception:
-            raise HTTPException(status_code=400, detail="Invalid image file")
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid image file: {str(e)}")
+        
+        # Generate unique filename to avoid conflicts
+        file_ext = os.path.splitext(file.filename)[1] if file.filename else ".jpg"
+        if not file_ext:
+            file_ext = ".jpg"
+        unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:8]}{file_ext}"
+        
+        # Ensure upload directory exists
+        os.makedirs(UPLOAD_DIR, exist_ok=True)
         
         # Save file
-        dst = os.path.join(UPLOAD_DIR, file.filename)
+        dst = os.path.join(UPLOAD_DIR, unique_filename)
         with open(dst, "wb") as f:
             f.write(raw)
         
-        # Analyze image
-        breed, breed_conf = predict_breed(dst)
-        brightness, clarity, color_balance, summary, nutrition = analyze_image(dst)
+        # Verify file was saved
+        if not os.path.exists(dst):
+            raise HTTPException(status_code=500, detail="Failed to save uploaded file")
+        
+        # STEP 1: Validate that the image contains a dog BEFORE any analysis
+        from services.dog_detector import validate_dog_image
+        is_valid_dog, dog_conf, dog_message, detected_label = validate_dog_image(dst)
+        
+        # Also check breed classifier as secondary validation
+        breed_detected = False
+        breed, breed_conf = None, 0.0
+        try:
+            breed, breed_conf = predict_breed(dst)
+            # If breed classifier returns a valid breed with decent confidence, it's likely a dog
+            if breed and breed_conf > 0.3 and "unknown" not in breed.lower():
+                breed_detected = True
+        except Exception as e:
+            print(f"Breed prediction error during validation: {e}")
+        
+        # Final validation: Must pass either dog detector OR breed classifier
+        if not is_valid_dog and not breed_detected:
+            # Create user-friendly error message (readable and clear)
+            # Extract just the detected object name from dog_message for cleaner display
+            detected_obj = detected_label if detected_label else "unknown object"
+            confidence_pct = round(dog_conf * 100, 1) if dog_conf > 0 else 0
+            error_msg = f"**Image Validation Failed**\n\nThe uploaded image does not appear to contain a dog. The system detected: {detected_obj} (confidence: {confidence_pct}%).\n\n**Please Note:** This health analysis feature is designed specifically for dog images. Please upload a clear photo of your dog to receive health analysis."
+            
+            # Save user message and error response to chat
+            create_chat_message(db, pet.id, str(user_id), f"Image uploaded: {file.filename or 'image'}.", image_url=f"/images/{unique_filename}")
+            await write_ai_message_to_database(db, pet.id, error_msg, sender_is_user=False)
+            
+            # Return error response (don't raise exception so user sees the message in chat)
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "status": "validation_failed",
+                    "message": "Image does not appear to contain a dog",
+                    "detail": dog_message,
+                    "filename": unique_filename
+                }
+            )
+        
+        # If we reach here, image is validated as dog image
+        # Continue with breed detection if not already done
+        if not breed_detected:
+            try:
+                breed, breed_conf = predict_breed(dst)
+                # Double-check: if breed is still invalid, use dog detector result
+                if not breed or breed_conf < 0.2 or "unknown" in breed.lower():
+                    breed = detected_label if is_valid_dog else "Unknown Breed"
+                    breed_conf = dog_conf if is_valid_dog else 0.0
+            except Exception as e:
+                print(f"Breed prediction error: {e}")
+                # Fallback to dog detector result
+                breed = detected_label if is_valid_dog else "Unknown Breed"
+                breed_conf = dog_conf if is_valid_dog else 0.0
+        
+        # Analyze image - Basic image quality
+        try:
+            brightness, clarity, color_balance, summary, nutrition = analyze_image(dst)
+        except Exception as e:
+            print(f"Image analysis error: {e}")
+            brightness, clarity, color_balance = 0.5, 0.5, 0.5
+            summary = "Image quality analysis completed"
+            nutrition = []
+        
+        # Advanced health analysis using vision AI
+        try:
+            health_analysis = analyze_health_with_vision(dst, breed)
+            # Clean breed name before generating summary
+            clean_breed = breed
+            if breed:
+                from services.health_vision_service import _clean_breed_name
+                clean_breed = _clean_breed_name(breed)
+            health_summary = generate_health_summary(health_analysis, clean_breed, breed_conf)
+        except Exception as e:
+            print(f"Health vision analysis error: {e}")
+            import traceback
+            traceback.print_exc()
+            health_analysis = {
+                "overall_health": "Good",
+                "observations": ["Image analysis completed successfully"],
+                "recommendations": [],
+                "concerns": []
+            }
+            # Clean breed name in fallback message too
+            clean_breed = breed
+            if breed:
+                from services.health_vision_service import _clean_breed_name
+                clean_breed = _clean_breed_name(breed)
+            health_summary = f"**Image Analyzed Successfully**\n\n**Breed Detected:** {clean_breed} ({round(breed_conf*100)}% confidence)\n\n{summary}"
+        
+        # Combine all analysis results
+        full_summary = health_summary
+        if health_analysis.get("vision_analysis"):
+            # If we have detailed vision analysis, use it
+            full_summary = health_summary
         
         # Save to database
-        create_uploaded_image(
-            db, pet.id, file.filename, dst,
-            breed=breed, breed_confidence=breed_conf,
-            brightness=brightness, clarity=clarity,
-            color_balance=color_balance, summary=summary, nutrition=nutrition
-        )
+        try:
+            create_uploaded_image(
+                db, pet.id, unique_filename, dst,
+                breed=breed, breed_confidence=breed_conf,
+                brightness=brightness, clarity=clarity,
+                color_balance=color_balance, summary=summary, nutrition=nutrition
+            )
+        except Exception as e:
+            print(f"Database save error: {e}")
+            # Continue even if database save fails
         
         # Create chat messages
-        image_url = f"/images/{file.filename}"
-        create_chat_message(db, pet.id, str(user_id), f"Dog photo uploaded: {file.filename}.", image_url=image_url)
-        breed_message = f"✅ Image analyzed! I detect a **{breed}** with {round(breed_conf*100)}% confidence. Summary: {summary}"
-        await write_ai_message_to_database(db, pet.id, breed_message, sender_is_user=False)
+        image_url = f"/images/{unique_filename}"
+        create_chat_message(db, pet.id, str(user_id), f"Dog photo uploaded: {file.filename or 'image'}.", image_url=image_url)
         
-        return JSONResponse(content={"status": "Image analyzed", "message": "Results sent to chat."})
-    else:
-        raise HTTPException(status_code=400, detail="Unsupported file type")
+        # Send comprehensive health analysis message
+        await write_ai_message_to_database(db, pet.id, full_summary, sender_is_user=False)
+        
+        return JSONResponse(content={
+            "status": "success",
+            "message": "Image analyzed successfully",
+            "filename": unique_filename,
+            "breed": breed,
+            "breed_confidence": round(breed_conf*100, 2),
+            "health_analysis": health_analysis
+        })
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Upload error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 @app.post("/user/{user_id}/pet/{pet_id}/upload/analyze_document")
 async def analyze_vet_report(

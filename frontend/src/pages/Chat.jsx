@@ -45,9 +45,13 @@ function Chat() {
       const userId = getUserId()
       const petId = getPetId()
       const response = await getChatMessages(userId, petId)
-      setMessages(response.messages || [])
+      console.log('Loaded messages:', response)
+      // Handle both response formats for backward compatibility
+      const messagesList = response.messages || response || []
+      setMessages(messagesList)
     } catch (err) {
       console.error('Failed to load messages:', err)
+      // Don't show alert, just log the error
     }
   }
 
@@ -96,16 +100,43 @@ function Chat() {
       const userId = getUserId()
       const petId = getPetId()
       
+      if (!file) {
+        alert('Please select a file to upload.')
+        return
+      }
+      
+      // Validate file size (max 10MB)
+      const maxSize = 10 * 1024 * 1024 // 10MB
+      if (file.size > maxSize) {
+        alert('File size is too large. Please upload an image smaller than 10MB.')
+        return
+      }
+      
+      // Validate file type for images
+      if (isImage && !file.type.startsWith('image/')) {
+        alert('Please upload a valid image file (jpg, png, etc.)')
+        return
+      }
+      
+      setIsTyping(true)
+      
       if (isImage) {
-        await uploadImage(userId, petId, file)
+        const response = await uploadImage(userId, petId, file)
+        console.log('Upload successful:', response)
       } else {
         await uploadDocument(userId, petId, file)
       }
       
+      // Reload messages multiple times to ensure we get the latest
+      await loadMessages()
       setTimeout(loadMessages, 1000)
+      setTimeout(loadMessages, 2000)
     } catch (err) {
       console.error('Upload failed:', err)
-      alert('Upload failed. Please try again.')
+      const errorMessage = err.response?.data?.detail || err.message || 'Upload failed. Please try again.'
+      alert(`Upload failed: ${errorMessage}`)
+    } finally {
+      setIsTyping(false)
     }
   }
 
@@ -164,4 +195,5 @@ function Chat() {
 }
 
 export default Chat
+
 
