@@ -1,0 +1,72 @@
+# ------------------
+# OS & Editor Files
+# ------------------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.log
+*.swp
+*.swo
+*~
+
+# ------------------
+# Python / Backend
+# ------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+.venv/
+env/
+venv/
+dogai_venv/
+*.egg-info/
+*.pytest_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ------------------
+# Node / Frontend
+# ------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.expo/
+.expo-shared/
+dist/
+build/
+.vite/
+
+# ------------------
+# Generated / Uploads / Reports
+# ------------------
+backend/reports/
+backend/uploaded_images/
+backend/data/sessions/
+*.pdf
+
+# ------------------
+# Environment Variables
+# ------------------
+.env
+.env.local
+.env.*.local
+
+# ------------------
+# IDE
+# ------------------
+*.sublime-project
+*.sublime-workspace
+
+# ------------------
+# Temporary Files
+# ------------------
+*.tmp
+*.temp
+.cache/

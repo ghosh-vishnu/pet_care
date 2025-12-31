@@ -1,0 +1,46 @@
+# ------------------
+# OS & Editor Files
+# ------------------
+.DS_Store
+Thumbs.db
+.vscode/
+*.log
+
+# ------------------
+# Python / Backend
+# ------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+.venv/
+env/
+*.egg-info/
+*.pytest_cache/
+
+# ------------------
+# Node / Frontend
+# ------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.expo/
+.expo-shared/
+dist/
+build/
+
+# ------------------
+# Generated / Uploads / Reports
+# ------------------
+reports/
+images/
+*.pdf
+
+# ------------------
+# Misc
+# ------------------
+.env
+.env.local

@@ -1,0 +1,111 @@
+.dashboard-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-title {
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.dashboard-card {
+  background: #f9f9f9;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.profile-card h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.profile-details {
+  margin-bottom: 20px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: #666;
+}
+
+.detail-value {
+  color: #333;
+}
+
+.btn-edit, .btn-primary, .action-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  margin: 5px;
+}
+
+.btn-edit, .btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.action-btn {
+  background: #f0f0f0;
+  color: #333;
+  width: 100%;
+  margin: 5px 0;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.error-message {
+  background: #fee;
+  color: #c33;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.btn-link {
+  background: transparent;
+  color: #667eea;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 40px;
+}
+

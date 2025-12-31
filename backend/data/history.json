@@ -1,0 +1,642 @@
+[
+  {
+    "id": "chat_1",
+    "ts": "2025-08-23T11:39:14.634734Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_2",
+    "ts": "2025-08-23T12:08:15.351842Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_3",
+    "ts": "2025-08-23T12:11:45.648149Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_4",
+    "ts": "2025-08-23T12:12:48.196538Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_5",
+    "ts": "2025-08-23T12:14:08.838673Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_6",
+    "ts": "2025-08-23T12:23:31.196117Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_7",
+    "ts": "2025-08-23T12:29:30.616884Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_8",
+    "ts": "2025-08-23T12:38:51.620878Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_9",
+    "ts": "2025-08-23T12:40:11.517625Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_10",
+    "ts": "2025-08-23T12:40:38.189687Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_11",
+    "ts": "2025-08-23T12:41:03.330831Z",
+    "question": "Hey",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_12",
+    "ts": "2025-08-23T12:41:09.887524Z",
+    "question": "How are you?",
+    "answer": "Most adult dogs need at least two 20–30 minute walks daily. High-energy breeds may need more.",
+    "matched_question": "how often should i walk my dog?",
+    "score": 0.3207320097130669
+  },
+  {
+    "id": "chat_13",
+    "ts": "2025-08-23T12:41:34.057478Z",
+    "question": "Give me some instructions for my dpg health ",
+    "answer": "Withhold food for 8–12 hours, offer small amounts of water. If vomiting persists >24h, there is blood, lethargy, or pain—contact a vet urgently.",
+    "matched_question": "my dog is vomiting",
+    "score": 0.3036656647614862
+  },
+  {
+    "id": "chat_14",
+    "ts": "2025-08-23T12:43:43.705604Z",
+    "question": "Play music",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_15",
+    "ts": "2025-08-23T13:06:20.481357Z",
+    "question": "Hello",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_16",
+    "ts": "2025-08-23T13:06:33.766234Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_17",
+    "ts": "2025-08-23T13:15:11.511638Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_18",
+    "ts": "2025-08-23T13:23:03.741953Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_19",
+    "ts": "2025-08-23T13:29:34.313678Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_20",
+    "ts": "2025-08-23T13:29:35.207022Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_21",
+    "ts": "2025-08-23T13:29:35.587460Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_22",
+    "ts": "2025-08-23T13:29:36.464529Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_23",
+    "ts": "2025-08-23T13:29:36.632933Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_24",
+    "ts": "2025-08-23T13:29:36.860103Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_25",
+    "ts": "2025-08-23T13:29:37.070215Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_26",
+    "ts": "2025-08-23T13:29:37.265764Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_27",
+    "ts": "2025-08-23T13:29:37.476039Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_28",
+    "ts": "2025-08-23T13:29:37.738195Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_29",
+    "ts": "2025-08-23T13:29:38.128160Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_30",
+    "ts": "2025-08-23T13:29:47.841773Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_31",
+    "ts": "2025-08-23T13:29:48.291116Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_32",
+    "ts": "2025-08-23T13:29:48.521955Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_33",
+    "ts": "2025-08-23T13:36:21.410147Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_34",
+    "ts": "2025-08-23T14:00:09.735731Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_35",
+    "ts": "2025-08-23T14:00:09.815571Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_36",
+    "ts": "2025-08-23T14:00:09.838166Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_37",
+    "ts": "2025-08-23T14:00:09.865583Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_38",
+    "ts": "2025-08-23T14:00:09.888926Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_39",
+    "ts": "2025-08-23T14:00:22.043719Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_40",
+    "ts": "2025-08-23T14:07:01.323102Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_41",
+    "ts": "2025-08-25T05:09:06.008342Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_42",
+    "ts": "2025-08-25T05:09:15.373066Z",
+    "question": "dental care",
+    "answer": "Daily tooth brushing with dog toothpaste, dental chews, and periodic professional cleaning help prevent periodontal disease.",
+    "matched_question": "dental care",
+    "score": 1.0
+  },
+  {
+    "id": "chat_43",
+    "ts": "2025-08-25T05:09:28.587480Z",
+    "question": "what should i feed my puppy?",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.9999999999999999
+  },
+  {
+    "id": "chat_44",
+    "ts": "2025-08-25T05:11:17.129636Z",
+    "question": "Hello",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_45",
+    "ts": "2025-08-25T05:45:26.714391Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_46",
+    "ts": "2025-08-25T05:45:31.245870Z",
+    "question": "dental care",
+    "answer": "Daily tooth brushing with dog toothpaste, dental chews, and periodic professional cleaning help prevent periodontal disease.",
+    "matched_question": "dental care",
+    "score": 1.0
+  },
+  {
+    "id": "chat_47",
+    "ts": "2025-08-25T06:20:06.770153Z",
+    "question": "Hey",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_48",
+    "ts": "2025-08-25T06:20:27.110585Z",
+    "question": "dental care",
+    "answer": "Daily tooth brushing with dog toothpaste, dental chews, and periodic professional cleaning help prevent periodontal disease.",
+    "matched_question": "dental care",
+    "score": 1.0
+  },
+  {
+    "id": "chat_49",
+    "ts": "2025-08-25T06:20:35.750698Z",
+    "question": "pet dog",
+    "answer": "Withhold food for 8–12 hours, offer small amounts of water. If vomiting persists >24h, there is blood, lethargy, or pain—contact a vet urgently.",
+    "matched_question": "my dog is vomiting",
+    "score": 0.3470933482865148
+  },
+  {
+    "id": "chat_50",
+    "ts": "2025-08-25T06:33:41.995856Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_51",
+    "ts": "2025-08-25T06:33:46.372419Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_52",
+    "ts": "2025-08-25T06:33:46.828773Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_53",
+    "ts": "2025-08-25T06:34:23.716126Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_54",
+    "ts": "2025-08-25T06:34:24.924302Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_55",
+    "ts": "2025-08-25T06:34:25.402870Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_56",
+    "ts": "2025-08-25T06:34:25.794157Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_57",
+    "ts": "2025-08-25T06:34:25.993144Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_58",
+    "ts": "2025-08-25T06:34:26.152750Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_59",
+    "ts": "2025-08-25T06:42:21.825302Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_60",
+    "ts": "2025-08-25T07:01:37.354222Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_61",
+    "ts": "2025-08-25T07:40:35.480682Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_62",
+    "ts": "2025-08-25T08:30:31.528107Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_63",
+    "ts": "2025-08-25T08:33:58.574381Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.0
+  },
+  {
+    "id": "chat_64",
+    "ts": "2025-08-25T08:34:12.312002Z",
+    "question": "Dental care ",
+    "answer": "Daily tooth brushing with dog toothpaste, dental chews, and periodic professional cleaning help prevent periodontal disease.",
+    "matched_question": "dental care",
+    "score": 1.0
+  },
+  {
+    "id": "chat_65",
+    "ts": "2025-08-25T10:58:58.259025Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.16672790050506592
+  },
+  {
+    "id": "chat_66",
+    "ts": "2025-08-25T10:59:11.035486Z",
+    "question": "Dog vomiting ",
+    "answer": "Withhold food for 8–12 hours, offer small amounts of water. If vomiting persists >24h, there is blood, lethargy, or pain—contact a vet urgently.",
+    "matched_question": "my dog is vomiting",
+    "score": 0.9275447130203247
+  },
+  {
+    "id": "chat_67",
+    "ts": "2025-08-25T11:24:53.695508Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.16672790050506592
+  },
+  {
+    "id": "chat_68",
+    "ts": "2025-08-25T11:41:55.153779Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.16672790050506592
+  },
+  {
+    "id": "chat_69",
+    "ts": "2025-08-25T11:42:03.603744Z",
+    "question": "How are you?",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.17261263728141785
+  },
+  {
+    "id": "chat_70",
+    "ts": "2025-08-25T11:42:12.974346Z",
+    "question": "Dog health",
+    "answer": "Signs include lumps, weight loss, bleeding, lethargy. Vet check and biopsy required for diagnosis.",
+    "matched_question": "dog has cancer",
+    "score": 0.6339600086212158
+  },
+  {
+    "id": "chat_71",
+    "ts": "2025-08-25T12:05:41.169849Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.16672790050506592
+  },
+  {
+    "id": "chat_72",
+    "ts": "2025-08-25T12:05:48.332196Z",
+    "question": "dental care",
+    "answer": "Daily tooth brushing with dog toothpaste, dental chews, and periodic professional cleaning help prevent periodontal disease.",
+    "matched_question": "dental care",
+    "score": 1.0
+  },
+  {
+    "id": "chat_73",
+    "ts": "2025-08-25T12:18:43.641425Z",
+    "question": "Hi",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.16672790050506592
+  },
+  {
+    "id": "chat_74",
+    "ts": "2025-08-25T12:18:49.940485Z",
+    "question": "dental care",
+    "answer": "Daily tooth brushing with dog toothpaste, dental chews, and periodic professional cleaning help prevent periodontal disease.",
+    "matched_question": "dental care",
+    "score": 1.0
+  },
+  {
+    "id": "chat_75",
+    "ts": "2025-08-25T12:18:56.048326Z",
+    "question": "dog vomiting ",
+    "answer": "Withhold food for 8–12 hours, offer small amounts of water. If vomiting persists >24h, there is blood, lethargy, or pain—contact a vet urgently.",
+    "matched_question": "my dog is vomiting",
+    "score": 0.9275447130203247
+  },
+  {
+    "id": "chat_76",
+    "ts": "2025-08-25T12:18:58.531301Z",
+    "question": "dog vomiting ",
+    "answer": "Withhold food for 8–12 hours, offer small amounts of water. If vomiting persists >24h, there is blood, lethargy, or pain—contact a vet urgently.",
+    "matched_question": "my dog is vomiting",
+    "score": 0.9275447130203247
+  },
+  {
+    "id": "chat_77",
+    "ts": "2025-08-25T12:19:07.172886Z",
+    "question": "vaccination dog",
+    "answer": "They’re at higher risk of deadly diseases and may be denied entry to boarding/daycare/travel.",
+    "matched_question": "what happens if my dog isn’t vaccinated?",
+    "score": 0.7957605123519897
+  },
+  {
+    "id": "chat_78",
+    "ts": "2025-08-25T12:19:22.306359Z",
+    "question": "Vaccination dog tips for dogs",
+    "answer": "Bring them calm and healthy. Avoid vaccinating if sick, and give small meal before appointment.",
+    "matched_question": "how to prepare dog for vaccination?",
+    "score": 0.7936486005783081
+  },
+  {
+    "id": "chat_79",
+    "ts": "2025-08-25T12:19:40.898519Z",
+    "question": "Medications for dogs",
+    "answer": "I’m not fully sure about that. Could you rephrase your question or provide a few more details? For urgent or severe symptoms, please contact a veterinarian.",
+    "matched_question": "",
+    "score": 0.5777788162231445
+  },
+  {
+    "id": "chat_80",
+    "ts": "2025-08-25T12:20:03.169847Z",
+    "question": "Best nutrients for dogs health for husky ",
+    "answer": "Puppies need a balanced diet rich in protein, fat and calcium. Use a high-quality puppy formula. Feed 3–4 times a day until 6 months, then 2–3 times.",
+    "matched_question": "what should i feed my puppy?",
+    "score": 0.6045265197753906
+  }
+]
