@@ -92,15 +92,65 @@ async def write_ai_message_to_database(
     
     return True
 
+def check_faq_match(question: str, pet_profile: dict) -> Optional[str]:
+    """
+    Check if the question matches common FAQ patterns and return appropriate response.
+    Uses the same logic as generate_fallback_response but returns early if match found.
+    Returns None if no match found, otherwise returns the response.
+    """
+    question_lower = question.lower().strip()
+    
+    # Pet profile context
+    pet_name = pet_profile.get('petName', 'your dog') if pet_profile else 'your dog'
+    breed = pet_profile.get('breed', '') if pet_profile else ''
+    activity = pet_profile.get('activityLevel', 'Moderate') if pet_profile else 'Moderate'
+    
+    # Use the same patterns as generate_fallback_response
+    # Greeting responses
+    if any(word in question_lower for word in ['hi', 'hello', 'hey', 'namaste']):
+        return f"Hello! I'm here to help you with {pet_name}'s health and care. How can I assist you today?"
+    
+    # Health questions
+    if any(word in question_lower for word in ['health', 'sick', 'ill', 'problem', 'issue']):
+        return f"Regarding {pet_name}'s health, I recommend:\n\n1. Regular vet checkups every 6-12 months\n2. Monitor eating and drinking habits\n3. Watch for changes in behavior\n4. Keep vaccinations up to date\n\nIf you notice any concerning symptoms, please consult with a veterinarian immediately."
+    
+    # Nutrition questions
+    if any(word in question_lower for word in ['food', 'diet', 'eat', 'nutrition', 'meal', 'feed']):
+        breed_info = f" For {breed} breeds," if breed else ""
+        return f"Nutrition advice for {pet_name}:{breed_info}\n\n1. Feed high-quality dog food appropriate for their age and size\n2. Follow feeding guidelines on the food package\n3. Provide fresh water at all times\n4. Avoid human foods that can be toxic (chocolate, grapes, onions, etc.)\n5. Consider your dog's activity level when determining portion sizes\n\nFor specific nutritional needs, use the Nutrient Calculator feature in the app."
+    
+    # Exercise questions
+    if any(word in question_lower for word in ['exercise', 'walk', 'play', 'activity', 'fitness']):
+        return f"Exercise recommendations for {pet_name}:\n\n1. Daily walks (30-60 minutes depending on breed and age)\n2. Playtime and interactive games\n3. Mental stimulation through training or puzzle toys\n4. Adjust activity based on weather and your dog's {activity.lower()} activity level\n5. Watch for signs of fatigue or overheating"
+    
+    # Behavior questions
+    if any(word in question_lower for word in ['behavior', 'behave', 'training', 'train', 'obey']):
+        return f"Behavior and training tips for {pet_name}:\n\n1. Positive reinforcement works best\n2. Be consistent with commands and rules\n3. Socialize your dog from an early age\n4. Provide mental stimulation to prevent boredom\n5. Consider professional training if needed\n\nRemember, patience and consistency are key to successful training."
+    
+    # General care
+    if any(word in question_lower for word in ['care', 'grooming', 'bath', 'clean']):
+        return f"General care tips for {pet_name}:\n\n1. Regular grooming based on coat type\n2. Brush teeth regularly to prevent dental issues\n3. Trim nails when needed\n4. Check ears for signs of infection\n5. Keep living area clean and comfortable\n6. Provide a safe and secure environment"
+    
+    # If no match found, return None to proceed to OpenAI
+    return None
+
 def generate_dynamic_answer(question: str, history: list, location: Optional[str], pet_profile: dict, image_analysis_context: Optional[dict] = None) -> str:
     """
     Generates an AI response using OpenAI based on the question and pet profile.
+    First checks FAQ, then uses OpenAI if no match found.
     """
-    # Check if OpenAI client is available
+    # Step 1: Check FAQ first
+    faq_response = check_faq_match(question, pet_profile)
+    if faq_response:
+        print(f"FAQ match found for question: {question[:50]}...")
+        return faq_response
+    
+    # Step 2: If no FAQ match and OpenAI client is not available, use fallback
     if client is None:
-        # Fallback responses when OpenAI is not configured
+        print(f"No FAQ match and OpenAI not available, using fallback response")
         return generate_fallback_response(question, pet_profile)
     
+    # Step 3: Use OpenAI for complex questions not in FAQ
     try:
         # Build context from pet profile
         profile_context = ""
