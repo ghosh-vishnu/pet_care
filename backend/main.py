@@ -392,11 +392,27 @@ async def combined_upload_and_analyze(
         from services.dog_detector import validate_dog_image
         is_valid_dog, dog_conf, dog_message, detected_label = validate_dog_image(dst)
         
+        # Get recent messages for repetition tracking
+        from services.db_service import get_chat_messages
+        recent_ai_messages = get_chat_messages(db, pet.id, limit=10)
+        recent_messages = [
+            {
+                "sender": "ai" if msg.sender == "ai_bot" else "user",
+                "text": msg.text or "",
+            }
+            for msg in recent_ai_messages[-5:]  # Last 5 messages
+        ]
+        
         # If dog detector rejects, immediately reject - don't even check breed classifier
         if not is_valid_dog:
-            # Generate user-friendly message based on confidence
-            from services.response_messages import get_dog_detection_message
-            error_msg = get_dog_detection_message(dog_conf)
+            # Generate user-friendly message based on confidence with repetition tracking
+            from services.response_messages import get_dog_detection_message, get_non_dog_message
+            
+            # Check if this might be a non-dog animal (very low confidence or specific detection)
+            if dog_conf < 0.15 or (detected_label and detected_label.lower() not in ["dog", "dogs", "puppy", "puppies"]):
+                error_msg = get_non_dog_message(recent_messages)
+            else:
+                error_msg = get_dog_detection_message(dog_conf, recent_messages)
             
             # Save user message and error response to chat
             image_url = f"/images/{unique_filename}"
@@ -449,7 +465,7 @@ async def combined_upload_and_analyze(
             if is_hairless_breed and dog_conf < 0.4:
                 print(f"[VALIDATION] ⚠️ SUSPICIOUS: Hairless breed detected with low dog detector confidence. Rejecting to avoid goat misclassification.")
                 from services.response_messages import get_hairless_breed_suspicion_message
-                error_msg = get_hairless_breed_suspicion_message()
+                error_msg = get_hairless_breed_suspicion_message(recent_messages)
                 
                 image_url = f"/images/{unique_filename}"
                 user_msg_obj = create_chat_message(db, pet.id, str(user_id), f"📷 Uploaded photo: {file.filename or 'image'}", image_url=image_url)
@@ -489,9 +505,9 @@ async def combined_upload_and_analyze(
             if breed_conf < 0.50:
                 print(f"[VALIDATION] Rejecting: Breed confidence too low ({breed_conf:.2%} < 0.50). Likely not a dog.")
                 
-                # User-friendly error message based on confidence
+                # User-friendly error message based on confidence with repetition tracking
                 from services.response_messages import get_low_breed_confidence_message
-                error_msg = get_low_breed_confidence_message(breed_conf)
+                error_msg = get_low_breed_confidence_message(breed_conf, recent_messages)
                 
                 image_url = f"/images/{unique_filename}"
                 user_msg_obj = create_chat_message(db, pet.id, str(user_id), f"📷 Uploaded photo: {file.filename or 'image'}", image_url=image_url)
@@ -555,7 +571,7 @@ async def combined_upload_and_analyze(
         
         try:
             health_analysis = analyze_health_with_vision(dst, breed)
-            health_summary = generate_health_summary(health_analysis, clean_breed, breed_conf, dog_conf)
+            health_summary = generate_health_summary(health_analysis, clean_breed, breed_conf, dog_conf, recent_messages)
             print(f"Health analysis completed successfully. Summary length: {len(health_summary) if health_summary else 0}")
         except Exception as e:
             print(f"Health vision analysis error: {e}")
@@ -574,11 +590,11 @@ async def combined_upload_and_analyze(
             }
             # Generate fallback summary using the same format
             try:
-                health_summary = generate_health_summary(health_analysis, clean_breed, breed_conf, dog_conf)
+                health_summary = generate_health_summary(health_analysis, clean_breed, breed_conf, dog_conf, recent_messages)
             except:
                 # Final fallback if generate_health_summary also fails
                 from services.response_messages import get_breed_detection_message
-                health_summary = get_breed_detection_message(clean_breed, breed_conf, dog_conf)
+                health_summary = get_breed_detection_message(clean_breed, breed_conf, dog_conf, recent_messages)
         
         # Use health_summary (should always be set now)
         full_summary = health_summary if health_summary else f"I've analyzed your dog's photo!\n\n• Detected Breed: {clean_breed} ({round(breed_conf*100)}% confidence)\n• Overall Health Status: Good\n\nThis is an AI-based visual assessment."

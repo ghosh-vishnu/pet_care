@@ -248,22 +248,31 @@ def _clean_breed_name(breed: str) -> str:
         return parts[1]
     return breed
 
-def generate_health_summary(health_analysis: Dict, breed: str = None, breed_conf: float = 0.0, dog_conf: float = None) -> str:
+def generate_health_summary(health_analysis: Dict, breed: str = None, breed_conf: float = 0.0, dog_conf: float = None, recent_messages: list = None) -> str:
     """
     Generate a simple, user-friendly response with only breed information.
     Uses the new response_messages module for consistent, trust-building messages.
+    Supports repetition tracking for adaptive responses.
     """
     from services.response_messages import get_breed_detection_message
     
+    recent_messages = recent_messages or []
+    
     if breed:
-        return get_breed_detection_message(breed, breed_conf, dog_conf)
+        return get_breed_detection_message(breed, breed_conf, dog_conf, recent_messages)
     else:
-        return (
-            "✅ I can see your dog!\n\n"
-            "However, I couldn't identify the breed from this photo.\n\n"
-            "👉 For better results, please upload:\n"
-            "• A clearer photo with good lighting\n"
-            "• Your dog's full body or face visible\n\n"
-            "Once I can see your dog more clearly, I'll be able to identify the breed."
-        )
+        # No breed detected
+        from services.response_messages import LOW_CONFIDENCE_WARNING, _count_recent_message_type
+        repetition_count = _count_recent_message_type(recent_messages, LOW_CONFIDENCE_WARNING)
+        
+        if repetition_count == 0:
+            return (
+                "✅ I can see your dog!\n\n"
+                "However, I couldn't identify the breed from this photo.\n\n"
+                "👉 Please upload a clearer photo where your dog's full body or face is visible."
+            )
+        elif repetition_count == 1:
+            return "I still need a clearer photo of your dog to identify the breed."
+        else:
+            return "Please upload a clear photo of your dog."
 
