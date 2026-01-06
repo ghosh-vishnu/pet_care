@@ -11,7 +11,6 @@ from torch.utils.data import DataLoader, random_split
 import os
 
 # --- 1. CONFIGURATION ---
-NUM_CLASSES = 120
 # Path to the Images folder you created in the 'data' directory:
 DATA_DIR = './data/Images' 
 SAVE_PATH = './services/dog_breed_weights.pth'
@@ -42,6 +41,9 @@ data_transforms = {
 print("Loading all images from dataset...")
 try:
     full_dataset = datasets.ImageFolder(DATA_DIR, data_transforms['train'])
+    # Dynamically determine number of classes from dataset
+    NUM_CLASSES = len(full_dataset.classes)
+    print(f"Found {NUM_CLASSES} dog breed classes in dataset")
 except FileNotFoundError as e:
     print(f"ERROR: Cannot find dataset folder. Check DATA_DIR path: {DATA_DIR}")
     print("Ensure you moved the 'Images' folder into the 'data' directory.")

@@ -202,7 +202,18 @@ async def chat_in_session(
     
     user_msg = req.question.strip()
     location = getattr(req, "location", None)
-    pet_profile = req.pet_profile
+    # Get pet profile from database (always use latest database data)
+    from services.db_service import get_pet_profile
+    pet_profile_db = get_pet_profile(db, user_id, pet_id)
+    # Merge with request pet_profile if provided (frontend data takes precedence for specific fields)
+    if req.pet_profile and pet_profile_db:
+        pet_profile = {**pet_profile_db, **req.pet_profile}  # Request data overrides DB data
+    elif req.pet_profile:
+        pet_profile = req.pet_profile
+    elif pet_profile_db:
+        pet_profile = pet_profile_db
+    else:
+        pet_profile = {}  # Fallback to empty profile
     image_url = getattr(req, "image_url", None)
     image_analysis_context = getattr(req, "image_analysis_context", None)
     
@@ -473,6 +484,36 @@ async def combined_upload_and_analyze(
         
         # Use health_summary (should always be set now)
         full_summary = health_summary if health_summary else f"I've analyzed your dog's photo!\n\n• Detected Breed: {clean_breed} ({round(breed_conf*100)}% confidence)\n• Overall Health Status: Good\n\nThis is an AI-based visual assessment."
+        
+        # Auto-update pet profile breed if detected from image and breed is missing/unknown
+        if breed and breed_conf > 0.5:  # Only update if confidence is decent
+            try:
+                from services.db_service import get_pet_profile
+                current_profile = get_pet_profile(db, user_id, pet_id)
+                # Update breed if it's missing, empty, "Unknown", or "Unknown Breed"
+                if not current_profile or not current_profile.get('breed') or \
+                   current_profile.get('breed', '').lower() in ['unknown', 'unknown breed', '']:
+                    print(f"Auto-updating pet profile breed from '{current_profile.get('breed') if current_profile else 'None'}' to '{breed}' (confidence: {breed_conf:.2%})")
+                    if not current_profile:
+                        current_profile = {
+                            "petName": pet.pet_name or "My Pet",
+                            "breed": "",
+                            "weight": pet.weight or "",
+                            "age": pet.age or "",
+                            "gender": pet.gender or "",
+                            "season": pet.season or "",
+                            "activityLevel": pet.activity_level or "",
+                            "behaviorNotes": pet.behavior_notes or "",
+                            "medicalConditions": pet.medical_conditions or [],
+                            "goals": pet.goals or []
+                        }
+                    current_profile['breed'] = breed
+                    create_or_update_pet_profile(db, user_id, pet_id, current_profile)
+                    db.refresh(pet)  # Refresh pet object with updated breed
+                    print(f"Successfully auto-updated breed to: {breed}")
+            except Exception as e:
+                print(f"Failed to auto-update breed in pet profile: {e}")
+                # Continue - this is not critical
         
         # Save to database
         try:
