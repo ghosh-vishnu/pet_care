@@ -44,14 +44,32 @@ function Chat() {
     try {
       const userId = getUserId()
       const petId = getPetId()
+      
+      if (!userId || !petId) {
+        console.warn('User ID or Pet ID missing')
+        return
+      }
+      
       const response = await getChatMessages(userId, petId)
       console.log('Loaded messages:', response)
+      
       // Handle both response formats for backward compatibility
-      const messagesList = response.messages || response || []
-      setMessages(messagesList)
+      const messagesList = response?.messages || response || []
+      
+      // Ensure messages have required fields
+      const formattedMessages = messagesList.map(msg => ({
+        sender: msg.sender || 'user',
+        text: msg.text || '',
+        image_url: msg.image_url || null,
+        timestamp: msg.timestamp || new Date().toISOString()
+      }))
+      
+      console.log('Formatted messages:', formattedMessages)
+      setMessages(formattedMessages)
     } catch (err) {
       console.error('Failed to load messages:', err)
-      // Don't show alert, just log the error
+      // Keep existing messages if loading fails
+      console.error('Error details:', err.response?.data || err.message)
     }
   }
 
@@ -123,14 +141,26 @@ function Chat() {
       if (isImage) {
         const response = await uploadImage(userId, petId, file)
         console.log('Upload successful:', response)
+        
+        // If response includes messages, add them immediately to chat
+        if (response.messages && Array.isArray(response.messages) && response.messages.length > 0) {
+          console.log('Adding messages from upload response:', response.messages)
+          setMessages(prev => [...prev, ...response.messages])
+          // Also reload to ensure we have everything
+          setTimeout(() => loadMessages(), 500)
+        } else {
+          // Fallback: reload messages if not included in response
+          await new Promise(resolve => setTimeout(resolve, 500))
+          await loadMessages()
+          setTimeout(() => loadMessages(), 1000)
+          setTimeout(() => loadMessages(), 2000)
+        }
       } else {
         await uploadDocument(userId, petId, file)
+        // Reload messages for documents too
+        await new Promise(resolve => setTimeout(resolve, 500))
+        await loadMessages()
       }
-      
-      // Reload messages multiple times to ensure we get the latest
-      await loadMessages()
-      setTimeout(loadMessages, 1000)
-      setTimeout(loadMessages, 2000)
     } catch (err) {
       console.error('Upload failed:', err)
       const errorMessage = err.response?.data?.detail || err.message || 'Upload failed. Please try again.'

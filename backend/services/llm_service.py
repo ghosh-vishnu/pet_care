@@ -92,7 +92,7 @@ async def write_ai_message_to_database(
     
     return True
 
-def generate_dynamic_answer(question: str, history: list, location: Optional[str], pet_profile: dict) -> str:
+def generate_dynamic_answer(question: str, history: list, location: Optional[str], pet_profile: dict, image_analysis_context: Optional[dict] = None) -> str:
     """
     Generates an AI response using OpenAI based on the question and pet profile.
     """
@@ -119,11 +119,29 @@ Pet Profile:
         
         location_context = f"\nLocation: {location}" if location else ""
         
+        # Add image analysis context if available
+        image_context = ""
+        if image_analysis_context:
+            image_context = f"""
+Recent Image Analysis:
+- Overall Health: {image_analysis_context.get('overall_health', 'Unknown')}
+- Body Condition: {image_analysis_context.get('body_condition', 'Unknown')}
+- Coat Condition: {image_analysis_context.get('coat_condition', 'Unknown')}
+- Eye Condition: {image_analysis_context.get('eye_condition', 'Unknown')}
+- Energy Level: {image_analysis_context.get('energy_level', 'Unknown')}
+- Observations: {', '.join(image_analysis_context.get('observations', [])) if isinstance(image_analysis_context.get('observations'), list) else str(image_analysis_context.get('observations', ''))}
+- Concerns: {', '.join(image_analysis_context.get('concerns', [])) if isinstance(image_analysis_context.get('concerns'), list) else ''}
+- Recommendations: {', '.join(image_analysis_context.get('recommendations', [])) if isinstance(image_analysis_context.get('recommendations'), list) else ''}
+"""
+            if image_analysis_context.get('vision_analysis'):
+                image_context += f"\nDetailed Vision Analysis: {image_analysis_context.get('vision_analysis')}\n"
+        
         system_prompt = f"""You are a helpful AI assistant specialized in dog health and care. 
 You provide expert advice on dog nutrition, health, behavior, and general care.
-{profile_context}{location_context}
+{profile_context}{location_context}{image_context}
 
-Provide helpful, accurate, and caring responses about dog health and wellness."""
+Provide helpful, accurate, and caring responses about dog health and wellness.
+When image analysis is provided, incorporate those observations into your response."""
 
         messages = [
             {"role": "system", "content": system_prompt}

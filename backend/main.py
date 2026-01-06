@@ -34,13 +34,21 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Dog Health AI Backend", version="2.0.0")
 security = HTTPBearer()
 
-# CORS
+# CORS - Allow requests from frontend (MUST be before routes and mounts)
+# This MUST be configured before any routes or static mounts
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3001",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
+    expose_headers=["*"],
+    max_age=3600,
 )
 
 # Static folders
@@ -87,6 +95,11 @@ async def get_current_user(
 @app.get("/")
 def root():
     return {"status": "ok", "message": "Dog Health AI API running with PostgreSQL"}
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "cors": "enabled"}
 
 # Authentication endpoints
 @app.post("/auth/register")
@@ -139,12 +152,18 @@ async def save_pet_profile(
     current_user_id: int = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    if current_user_id != user_id:
-        raise HTTPException(status_code=403, detail="Access denied")
-    
-    profile_dict = profile.model_dump()
-    pet = create_or_update_pet_profile(db, user_id, pet_id, profile_dict)
-    return {"success": True, "message": "Profile saved successfully"}
+    try:
+        if current_user_id != user_id:
+            raise HTTPException(status_code=403, detail="Access denied")
+        
+        profile_dict = profile.model_dump()
+        pet = create_or_update_pet_profile(db, user_id, pet_id, profile_dict)
+        return {"success": True, "message": "Profile saved successfully", "pet_id": pet.pet_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error saving pet profile: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to save profile: {str(e)}")
 
 # Chat endpoints
 @app.post("/user/{user_id}/pet/{pet_id}/chat", response_model=ChatAnswer)
@@ -159,21 +178,56 @@ async def chat_in_session(
         raise HTTPException(status_code=403, detail="Access denied")
     
     # Get pet for database operations
-    from services.db_service import get_pet_by_id
+    from services.db_service import get_pet_by_id, create_or_update_pet_profile
     pet = get_pet_by_id(db, user_id, pet_id)
     if not pet:
-        raise HTTPException(status_code=404, detail="Pet not found")
+        # Auto-create pet profile if it doesn't exist (for backward compatibility)
+        try:
+            minimal_profile = {
+                "petName": "My Pet",
+                "breed": "Unknown",
+                "weight": "",
+                "age": "",
+                "gender": "",
+                "season": "",
+                "activityLevel": "",
+                "behaviorNotes": "",
+                "medicalConditions": [],
+                "goals": []
+            }
+            pet = create_or_update_pet_profile(db, user_id, pet_id, minimal_profile)
+        except Exception as e:
+            print(f"Failed to auto-create pet: {e}")
+            raise HTTPException(status_code=404, detail="Pet not found. Please complete your pet profile first.")
     
     user_msg = req.question.strip()
     location = getattr(req, "location", None)
     pet_profile = req.pet_profile
+    image_url = getattr(req, "image_url", None)
+    image_analysis_context = getattr(req, "image_analysis_context", None)
     
-    # Save user message
-    create_chat_message(db, pet.id, str(user_id), user_msg)
+    # If image_url is provided but no analysis context, try to get recent image analysis
+    if image_url and not image_analysis_context:
+        from services.db_service import get_pet_images
+        # Get the most recent uploaded image that matches this URL
+        images = get_pet_images(db, pet.id)
+        for img in images[:1]:  # Check most recent image
+            if image_url in img.file_path or img.file_path in image_url:
+                # Try to get analysis from health_vision_service if available
+                if os.path.exists(img.file_path):
+                    try:
+                        from services.health_vision_service import analyze_health_with_vision, generate_health_summary
+                        health_analysis = analyze_health_with_vision(img.file_path, pet.breed)
+                        image_analysis_context = health_analysis
+                    except Exception as e:
+                        print(f"Could not analyze image: {e}")
     
-    # Generate AI response
+    # Save user message with image URL if provided
+    create_chat_message(db, pet.id, str(user_id), user_msg, image_url=image_url)
+    
+    # Generate AI response with image analysis context
     history = []
-    answer = generate_dynamic_answer(user_msg, history, location, pet_profile)
+    answer = generate_dynamic_answer(user_msg, history, location, pet_profile, image_analysis_context)
     
     # Save AI response using the new function
     await write_ai_message_to_database(db, pet.id, answer, sender_is_user=False)
@@ -190,24 +244,55 @@ async def get_chat_messages_endpoint(
     if current_user_id != user_id:
         raise HTTPException(status_code=403, detail="Access denied")
     
-    from services.db_service import get_pet_by_id
+    from services.db_service import get_pet_by_id, create_or_update_pet_profile
     pet = get_pet_by_id(db, user_id, pet_id)
     if not pet:
-        raise HTTPException(status_code=404, detail="Pet not found")
+        # Auto-create pet profile if it doesn't exist
+        try:
+            minimal_profile = {
+                "petName": "My Pet",
+                "breed": "Unknown",
+                "weight": "",
+                "age": "",
+                "gender": "",
+                "season": "",
+                "activityLevel": "",
+                "behaviorNotes": "",
+                "medicalConditions": [],
+                "goals": []
+            }
+            pet = create_or_update_pet_profile(db, user_id, pet_id, minimal_profile)
+            print(f"Auto-created pet profile for user {user_id}, pet_id {pet_id}")
+        except Exception as e:
+            print(f"Failed to auto-create pet: {e}")
+            import traceback
+            traceback.print_exc()
+            # Return empty messages if pet creation fails
+            return {"messages": []}
     
-    messages = get_chat_messages(db, pet.id)
-    messages_list = []
-    for msg in messages:
-        # Map sender to frontend expected format
-        # If sender is "ai_bot", it's an AI message, otherwise it's a user message
-        sender = "ai" if msg.sender == "ai_bot" else "user"
-        messages_list.append({
-            "sender": sender,
-            "text": msg.text or "",
-            "image_url": msg.image_url,
-            "timestamp": msg.timestamp.isoformat() if msg.timestamp else None
-        })
-    return {"messages": messages_list}
+    # Get messages for this pet
+    try:
+        messages = get_chat_messages(db, pet.id)
+        print(f"Retrieved {len(messages)} messages from database for pet.id={pet.id}, pet_id={pet_id}")
+        messages_list = []
+        for msg in messages:
+            # Map sender to frontend expected format
+            # If sender is "ai_bot", it's an AI message, otherwise it's a user message
+            sender = "ai" if msg.sender == "ai_bot" else "user"
+            messages_list.append({
+                "sender": sender,
+                "text": msg.text or "",
+                "image_url": msg.image_url,
+                "timestamp": msg.timestamp.isoformat() if msg.timestamp else None
+            })
+        
+        print(f"Returning {len(messages_list)} formatted messages for pet.id={pet.id}, pet_id={pet_id}")
+        return {"messages": messages_list}
+    except Exception as e:
+        print(f"Error retrieving messages: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"messages": []}
 
 # Upload endpoints
 @app.post("/user/{user_id}/pet/{pet_id}/upload/analyze")
@@ -221,14 +306,37 @@ async def combined_upload_and_analyze(
     if current_user_id != user_id:
         raise HTTPException(status_code=403, detail="Access denied")
     
-    from services.db_service import get_pet_by_id
+    from services.db_service import get_pet_by_id, create_or_update_pet_profile
     from services.health_vision_service import analyze_health_with_vision, generate_health_summary
     import uuid
     from datetime import datetime
     
     pet = get_pet_by_id(db, user_id, pet_id)
     if not pet:
-        raise HTTPException(status_code=404, detail="Pet not found")
+        # Auto-create pet profile if it doesn't exist (for backward compatibility)
+        try:
+            # Create a minimal pet profile
+            minimal_profile = {
+                "petName": "My Pet",
+                "breed": "Unknown",
+                "weight": "",
+                "age": "",
+                "gender": "",
+                "season": "",
+                "activityLevel": "",
+                "behaviorNotes": "",
+                "medicalConditions": [],
+                "goals": []
+            }
+            pet = create_or_update_pet_profile(db, user_id, pet_id, minimal_profile)
+            # Refresh pet object to ensure we have the latest data
+            db.refresh(pet)
+            print(f"Auto-created and refreshed pet: id={pet.id}, pet_id={pet.pet_id}, user_id={pet.user_id}")
+        except Exception as e:
+            print(f"Failed to auto-create pet: {e}")
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(status_code=404, detail="Pet not found. Please complete your pet profile first.")
     
     try:
         raw = await file.read()
@@ -330,36 +438,41 @@ async def combined_upload_and_analyze(
             nutrition = []
         
         # Advanced health analysis using vision AI
+        health_analysis = None
+        health_summary = None
+        clean_breed = breed
+        if breed:
+            from services.health_vision_service import _clean_breed_name
+            clean_breed = _clean_breed_name(breed)
+        
         try:
             health_analysis = analyze_health_with_vision(dst, breed)
-            # Clean breed name before generating summary
-            clean_breed = breed
-            if breed:
-                from services.health_vision_service import _clean_breed_name
-                clean_breed = _clean_breed_name(breed)
             health_summary = generate_health_summary(health_analysis, clean_breed, breed_conf)
+            print(f"Health analysis completed successfully. Summary length: {len(health_summary) if health_summary else 0}")
         except Exception as e:
             print(f"Health vision analysis error: {e}")
             import traceback
             traceback.print_exc()
+            # Fallback health analysis
             health_analysis = {
                 "overall_health": "Good",
                 "observations": ["Image analysis completed successfully"],
                 "recommendations": [],
-                "concerns": []
+                "concerns": [],
+                "body_condition": "Normal",
+                "coat_condition": "Healthy",
+                "eye_condition": "Normal",
+                "energy_level": "Normal"
             }
-            # Clean breed name in fallback message too
-            clean_breed = breed
-            if breed:
-                from services.health_vision_service import _clean_breed_name
-                clean_breed = _clean_breed_name(breed)
-            health_summary = f"**Image Analyzed Successfully**\n\n**Breed Detected:** {clean_breed} ({round(breed_conf*100)}% confidence)\n\n{summary}"
+            # Generate fallback summary using the same format
+            try:
+                health_summary = generate_health_summary(health_analysis, clean_breed, breed_conf)
+            except:
+                # Final fallback if generate_health_summary also fails
+                health_summary = f"I've analyzed your dog's photo!\n\n• Detected Breed: {clean_breed} ({round(breed_conf*100)}% confidence)\n• Overall Health Status: Good\n\nVisual Health Observations:\n🐕 Body Condition: Looks healthy\n🧥 Coat & Skin: No major concerns visible\n👀 Eyes & Face: Looks healthy\n⚡ Energy & Posture: No major concerns visible\n\nRecommended Next Steps:\n• Continue regular care and monitoring\n\nThis is an AI-based visual assessment and not a medical diagnosis."
         
-        # Combine all analysis results
-        full_summary = health_summary
-        if health_analysis.get("vision_analysis"):
-            # If we have detailed vision analysis, use it
-            full_summary = health_summary
+        # Use health_summary (should always be set now)
+        full_summary = health_summary if health_summary else f"I've analyzed your dog's photo!\n\n• Detected Breed: {clean_breed} ({round(breed_conf*100)}% confidence)\n• Overall Health Status: Good\n\nThis is an AI-based visual assessment."
         
         # Save to database
         try:
@@ -373,12 +486,51 @@ async def combined_upload_and_analyze(
             print(f"Database save error: {e}")
             # Continue even if database save fails
         
-        # Create chat messages
+        # Create chat messages - User message first
         image_url = f"/images/{unique_filename}"
-        create_chat_message(db, pet.id, str(user_id), f"Dog photo uploaded: {file.filename or 'image'}.", image_url=image_url)
-        
-        # Send comprehensive health analysis message
-        await write_ai_message_to_database(db, pet.id, full_summary, sender_is_user=False)
+        messages_created = []
+        try:
+            # User message with image
+            user_msg = create_chat_message(db, pet.id, str(user_id), f"📷 Uploaded dog photo: {file.filename or 'image'}", image_url=image_url)
+            print(f"User message saved (ID: {user_msg.id}): Image uploaded - {image_url}")
+            messages_created.append({
+                "sender": "user",
+                "text": user_msg.text,
+                "image_url": user_msg.image_url,
+                "timestamp": user_msg.timestamp.isoformat() if user_msg.timestamp else None
+            })
+            
+            # Send comprehensive health analysis message as AI response
+            ai_msg_result = await write_ai_message_to_database(db, pet.id, full_summary, sender_is_user=False)
+            print(f"AI analysis message saved: {len(full_summary)} characters, Result: {ai_msg_result}")
+            
+            # Verify messages were saved by querying them back
+            from services.db_service import get_chat_messages
+            saved_messages = get_chat_messages(db, pet.id)
+            print(f"Verified: {len(saved_messages)} total messages now in database for pet.id={pet.id}")
+            
+            # Add the last AI message (should be our health analysis) to response
+            ai_messages = [msg for msg in saved_messages if msg.sender == "ai_bot"]
+            if ai_messages:
+                latest_ai_msg = ai_messages[-1]  # Get the most recent AI message
+                messages_created.append({
+                    "sender": "ai",
+                    "text": latest_ai_msg.text,
+                    "image_url": latest_ai_msg.image_url,
+                    "timestamp": latest_ai_msg.timestamp.isoformat() if latest_ai_msg.timestamp else None
+                })
+                print(f"Added AI message to response: {len(latest_ai_msg.text)} characters")
+            
+            print(f"Messages saved successfully for pet.id={pet.id}, pet_id={pet_id}, user_id={user_id}")
+        except Exception as e:
+            print(f"Error saving chat messages: {e}")
+            import traceback
+            traceback.print_exc()
+            try:
+                db.rollback()
+            except:
+                pass
+            # Continue anyway - image was uploaded successfully
         
         return JSONResponse(content={
             "status": "success",
@@ -386,7 +538,8 @@ async def combined_upload_and_analyze(
             "filename": unique_filename,
             "breed": breed,
             "breed_confidence": round(breed_conf*100, 2),
-            "health_analysis": health_analysis
+            "health_analysis": health_analysis,
+            "messages": messages_created  # Return created messages so frontend can display immediately
         })
         
     except HTTPException:

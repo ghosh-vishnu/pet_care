@@ -1,6 +1,6 @@
 # database_models.py - SQLAlchemy Models for PostgreSQL
 
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, JSON, Float
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, JSON, Float, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -22,7 +22,12 @@ class Pet(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    pet_id = Column(String, unique=True, index=True, nullable=False)  # Custom pet ID like 'your_dog_buddy_id'
+    pet_id = Column(String, index=True, nullable=False)  # Custom pet ID like 'your_dog_buddy_id'
+    
+    # Composite unique constraint: pet_id should be unique per user
+    __table_args__ = (
+        UniqueConstraint('user_id', 'pet_id', name='uq_user_pet_id'),
+    )
     
     # Profile data
     pet_name = Column(String)

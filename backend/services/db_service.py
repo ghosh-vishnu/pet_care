@@ -2,6 +2,7 @@
 
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
+from models.database_models import Pet
 from models.database_models import User, Pet, ChatMessage, UploadedImage, Report
 from typing import Optional, List, Dict
 from datetime import datetime
@@ -31,55 +32,69 @@ def get_pet_profile(db: Session, user_id: int, pet_id: str) -> Optional[Dict]:
     if not pet:
         return None
     
+    # Return profile data even if some fields are missing
+    # The frontend will handle displaying "Not specified" for empty fields
     return {
-        "petName": pet.pet_name,
-        "breed": pet.breed,
-        "weight": pet.weight,
-        "age": pet.age,
-        "gender": pet.gender,
-        "season": pet.season,
-        "activityLevel": pet.activity_level,
-        "behaviorNotes": pet.behavior_notes,
+        "petName": pet.pet_name or "",
+        "breed": pet.breed or "",
+        "weight": pet.weight or "",
+        "age": pet.age or "",
+        "gender": pet.gender or "",
+        "season": pet.season or "",
+        "activityLevel": pet.activity_level or "",
+        "behaviorNotes": pet.behavior_notes or "",
         "medicalConditions": pet.medical_conditions or [],
         "goals": pet.goals or []
     }
 
 def create_or_update_pet_profile(db: Session, user_id: int, pet_id: str, profile_data: Dict) -> Pet:
-    pet = get_pet_by_id(db, user_id, pet_id)
-    
-    if pet:
-        # Update existing pet
-        pet.pet_name = profile_data.get("petName")
-        pet.breed = profile_data.get("breed")
-        pet.weight = profile_data.get("weight")
-        pet.age = profile_data.get("age")
-        pet.gender = profile_data.get("gender")
-        pet.season = profile_data.get("season")
-        pet.activity_level = profile_data.get("activityLevel")
-        pet.behavior_notes = profile_data.get("behaviorNotes")
-        pet.medical_conditions = profile_data.get("medicalConditions", [])
-        pet.goals = profile_data.get("goals", [])
-    else:
-        # Create new pet
-        pet = Pet(
-            user_id=user_id,
-            pet_id=pet_id,
-            pet_name=profile_data.get("petName"),
-            breed=profile_data.get("breed"),
-            weight=profile_data.get("weight"),
-            age=profile_data.get("age"),
-            gender=profile_data.get("gender"),
-            season=profile_data.get("season"),
-            activity_level=profile_data.get("activityLevel"),
-            behavior_notes=profile_data.get("behaviorNotes"),
-            medical_conditions=profile_data.get("medicalConditions", []),
-            goals=profile_data.get("goals", [])
-        )
-        db.add(pet)
-    
-    db.commit()
-    db.refresh(pet)
-    return pet
+    try:
+        pet = get_pet_by_id(db, user_id, pet_id)
+        
+        if pet:
+            # Update existing pet
+            pet.pet_name = profile_data.get("petName")
+            pet.breed = profile_data.get("breed")
+            pet.weight = profile_data.get("weight")
+            pet.age = profile_data.get("age")
+            pet.gender = profile_data.get("gender")
+            pet.season = profile_data.get("season")
+            pet.activity_level = profile_data.get("activityLevel")
+            pet.behavior_notes = profile_data.get("behaviorNotes")
+            pet.medical_conditions = profile_data.get("medicalConditions", [])
+            pet.goals = profile_data.get("goals", [])
+        else:
+            # Check if pet_id exists for another user (shouldn't happen with new constraint, but handle gracefully)
+            existing_pet = db.query(Pet).filter(Pet.pet_id == pet_id).first()
+            if existing_pet and existing_pet.user_id != user_id:
+                # Pet ID exists for different user - this shouldn't happen with proper constraint
+                # But if it does, we'll create with a modified pet_id
+                import uuid
+                pet_id = f"{pet_id}_{uuid.uuid4().hex[:8]}"
+            
+            # Create new pet
+            pet = Pet(
+                user_id=user_id,
+                pet_id=pet_id,
+                pet_name=profile_data.get("petName"),
+                breed=profile_data.get("breed"),
+                weight=profile_data.get("weight"),
+                age=profile_data.get("age"),
+                gender=profile_data.get("gender"),
+                season=profile_data.get("season"),
+                activity_level=profile_data.get("activityLevel"),
+                behavior_notes=profile_data.get("behaviorNotes"),
+                medical_conditions=profile_data.get("medicalConditions", []),
+                goals=profile_data.get("goals", [])
+            )
+            db.add(pet)
+        
+        db.commit()
+        db.refresh(pet)
+        return pet
+    except Exception as e:
+        db.rollback()
+        raise
 
 # Chat message operations
 def create_chat_message(db: Session, pet_id: int, sender: str, text: str, image_url: Optional[str] = None) -> ChatMessage:

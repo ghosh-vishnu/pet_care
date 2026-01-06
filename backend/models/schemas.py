@@ -4,6 +4,8 @@ from typing import List, Optional, Dict, Any
 class ChatRequest(BaseModel):
     question: str = Field(..., min_length=2)
     pet_profile: Optional[Dict[str, Any]] = None
+    image_url: Optional[str] = None  # URL to previously uploaded image for context
+    image_analysis_context: Optional[Dict[str, Any]] = None  # Pre-analyzed image data
 
 class ChatAnswer(BaseModel):
     answer: str

@@ -250,77 +250,152 @@ def _clean_breed_name(breed: str) -> str:
 
 def generate_health_summary(health_analysis: Dict, breed: str = None, breed_conf: float = 0.0) -> str:
     """
-    Generate a human-readable health summary from the analysis results.
+    Generate a user-friendly, trust-building health summary from the analysis results.
+    Follows strict formatting guidelines: friendly, concise, under 300 words.
     """
-    summary_parts = []
+    parts = []
     
-    # Breed information (clean the breed name)
-    if breed and breed_conf > 0.5:
+    # 1️⃣ Friendly Opening
+    parts.append("I've analyzed your dog's photo and here's what I noticed!")
+    
+    # 2️⃣ Quick Summary (2-3 bullets max)
+    summary_bullets = []
+    
+    # Breed detection
+    clean_breed = None
+    if breed:
         clean_breed = _clean_breed_name(breed)
-        summary_parts.append(f"**Breed Detected:** {clean_breed} ({round(breed_conf*100)}% confidence)")
+        breed_pct = round(breed_conf * 100) if breed_conf > 0 else 0
+        if breed_pct > 0:
+            summary_bullets.append(f"• Detected Breed: {clean_breed} ({breed_pct}% confidence)")
     
-    # Overall health
+    # Overall health status
     overall = health_analysis.get("overall_health", "Good")
     if overall == "Good":
-        summary_parts.append("**Overall Health:** Appears healthy")
+        health_status = "Good"
     elif overall == "Good with Recommendations":
-        summary_parts.append("**Overall Health:** Generally good, but some recommendations below")
+        health_status = "Fair"
     elif overall == "Needs Attention":
-        summary_parts.append("**Overall Health:** Some concerns detected - please review")
+        health_status = "Needs Attention"
+    else:
+        health_status = "Good"
     
-    # Body condition
+    summary_bullets.append(f"• Overall Health Status: {health_status}")
+    
+    parts.append("\n" + "\n".join(summary_bullets))
+    
+    # 3️⃣ Visual Health Observations
+    observations_list = []
+    
+    # Body Condition
     body_cond = health_analysis.get("body_condition", "Normal")
-    if body_cond != "Normal":
-        summary_parts.append(f"**Body Condition:** {body_cond}")
+    if body_cond == "Underweight":
+        observations_list.append("🐕 Body Condition: May need attention - appears underweight")
+    elif body_cond == "Overweight":
+        observations_list.append("🐕 Body Condition: May need attention - appears overweight")
+    else:
+        observations_list.append("🐕 Body Condition: Looks healthy")
     
-    # Coat condition
+    # Coat & Skin
     coat_cond = health_analysis.get("coat_condition", "Healthy")
-    if coat_cond != "Healthy":
-        summary_parts.append(f"**Coat Condition:** {coat_cond}")
+    if coat_cond == "Healthy":
+        observations_list.append("🧥 Coat & Skin: Looks healthy")
+    elif coat_cond == "Dry":
+        observations_list.append("🧥 Coat & Skin: May need attention - appears dry")
+    elif coat_cond == "Needs Grooming":
+        observations_list.append("🧥 Coat & Skin: May need attention - grooming recommended")
+    elif coat_cond == "Skin Issues":
+        observations_list.append("🧥 Coat & Skin: May need attention - possible skin concerns")
+    else:
+        observations_list.append("🧥 Coat & Skin: No major concerns visible")
     
-    # Filter and clean observations (remove errors and duplicates)
-    observations = health_analysis.get("observations", [])
-    filtered_obs = []
-    seen_obs = set()
+    # Eyes & Face
+    eye_cond = health_analysis.get("eye_condition", "Normal")
+    if eye_cond == "Normal":
+        observations_list.append("👀 Eyes & Face: Looks healthy")
+    else:
+        observations_list.append("👀 Eyes & Face: May need attention")
     
-    for obs in observations:
-        # Skip error messages, duplicate breed info, and empty strings
-        if not obs or not obs.strip():
-            continue
-        obs_lower = obs.lower().strip()
-        if ("could not read image" in obs_lower or 
-            "error reading image" in obs_lower or
-            "image file not found" in obs_lower or
-            "breed identified:" in obs_lower or
-            obs.strip() in seen_obs):
-            continue
-        filtered_obs.append(obs.strip())
-        seen_obs.add(obs.strip())
+    # Energy & Posture
+    energy = health_analysis.get("energy_level", "Normal")
+    if energy == "High":
+        observations_list.append("⚡ Energy & Posture: Looks healthy and alert")
+    elif energy == "Low":
+        observations_list.append("⚡ Energy & Posture: May need attention - appears low energy")
+    else:
+        observations_list.append("⚡ Energy & Posture: No major concerns visible")
     
-    if filtered_obs:
-        summary_parts.append("\n**Observations:**")
-        for obs in filtered_obs[:5]:  # Show up to 5 observations
-            summary_parts.append(f"  • {obs}")
+    parts.append("\nVisual Health Observations:")
+    parts.append("\n".join(observations_list))
     
-    # Concerns
+    # 4️⃣ Key Concern (If Any) - Only 1-2 main concerns
     concerns = health_analysis.get("concerns", [])
     if concerns:
-        summary_parts.append("\n**Concerns:**")
-        for concern in concerns:
+        # Filter to most important 1-2 concerns, simplify language
+        main_concerns = []
+        for concern in concerns[:2]:  # Max 2 concerns
             if concern and concern.strip():
-                summary_parts.append(f"  • {concern.strip()}")
+                # Simplify concern text for user-friendly language
+                concern_text = concern.strip()
+                # Remove technical jargon and make it friendly
+                if "underweight" in concern_text.lower():
+                    main_concerns.append("⚠️ Possible underweight – ribs appear slightly visible.")
+                elif "overweight" in concern_text.lower():
+                    main_concerns.append("⚠️ Possible overweight – consider diet and exercise plan.")
+                elif "skin" in concern_text.lower():
+                    main_concerns.append("⚠️ Possible skin issues detected – consider vet consultation.")
+                elif "eye" in concern_text.lower():
+                    main_concerns.append("⚠️ Eye concerns detected – monitor closely.")
+                elif "lethargic" in concern_text.lower():
+                    main_concerns.append("⚠️ Low energy levels observed – monitor behavior patterns.")
+                else:
+                    # Use simplified version of the concern
+                    simplified = concern_text.replace("Dog appears ", "").replace(" - ", " – ").strip(".")
+                    main_concerns.append(f"⚠️ {simplified}.")
+        
+        if main_concerns:
+            parts.append("\n\nKey Concern:")
+            parts.append("\n".join(main_concerns))
     
-    # Recommendations
+    # 5️⃣ Recommended Next Steps - Action-oriented
     recommendations = health_analysis.get("recommendations", [])
-    if recommendations:
-        summary_parts.append("\n**Recommendations:**")
-        for rec in recommendations[:5]:  # Show up to 5 recommendations
-            if rec and rec.strip():
-                summary_parts.append(f"  • {rec.strip()}")
+    next_steps = []
     
-    # If no observations, concerns, or recommendations, add a default message
-    if not filtered_obs and not concerns and not recommendations:
-        summary_parts.append("\nImage analysis completed successfully. No immediate concerns detected.")
+    # Extract actionable recommendations, simplify language
+    for rec in recommendations[:3]:  # Max 3 recommendations
+        if rec and rec.strip():
+            rec_text = rec.strip()
+            # Simplify recommendation text
+            if "vet" in rec_text.lower() or "veterinarian" in rec_text.lower():
+                next_steps.append("Vet check recommended if concerns persist")
+            elif "grooming" in rec_text.lower() or "brushing" in rec_text.lower():
+                next_steps.append("Regular grooming and brushing recommended")
+            elif "nutrition" in rec_text.lower() or "diet" in rec_text.lower() or "omega" in rec_text.lower():
+                next_steps.append("Nutrition assessment and dietary adjustments may help")
+            elif "exercise" in rec_text.lower():
+                next_steps.append("Regular exercise and activity monitoring")
+            elif "monitor" in rec_text.lower():
+                next_steps.append("Continue monitoring eating, drinking, and activity patterns")
+            else:
+                # Use simplified version
+                simplified = rec_text.replace("Coat appears ", "").replace("Dog appears ", "").strip(".")
+                if simplified and len(simplified) < 80:  # Keep it short
+                    next_steps.append(simplified.capitalize())
     
-    return "\n".join(summary_parts)
+    # Add default recommendations if none exist
+    if not next_steps:
+        if health_status == "Good":
+            next_steps.append("Continue regular care and monitoring")
+        elif health_status == "Fair":
+            next_steps.append("Monitor closely and maintain regular vet checkups")
+        else:
+            next_steps.append("Consider veterinary consultation for detailed assessment")
+    
+    parts.append("\n\nRecommended Next Steps:")
+    parts.append("\n".join(f"• {step}" for step in next_steps[:3]))
+    
+    # 6️⃣ Soft Disclaimer (ONE LINE ONLY)
+    parts.append("\n\nThis is an AI-based visual assessment and not a medical diagnosis.")
+    
+    return "\n".join(parts)
 
