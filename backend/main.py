@@ -395,18 +395,37 @@ async def combined_upload_and_analyze(
         # If dog detector rejects, immediately reject - don't even check breed classifier
         if not is_valid_dog:
             # Create user-friendly error message (readable and clear)
-            # Extract just the detected object name from dog_message for cleaner display
+            # IMPORTANT: Don't show dog breed names in error messages for non-dog images
             detected_obj = detected_label if detected_label else "unknown object"
-            confidence_pct = round(dog_conf * 100, 1) if dog_conf > 0 else 0
             
-            # User-friendly error message (formatted for chat display)
-            error_msg = (
-                "Image Validation Failed\n\n"
-                f"The uploaded image does not appear to contain a dog. "
-                f"The system detected: {detected_obj} (confidence: {confidence_pct}%).\n\n"
-                "Please Note: This health analysis feature is designed specifically for dog images. "
-                "Please upload a clear photo of your dog to receive health analysis."
-            )
+            # Check if detected_obj is a dog breed - if so, replace with generic message
+            from services.dog_detector import DOG_KEYWORDS
+            detected_lower = detected_obj.lower()
+            
+            # If it's a dog breed or dog-related, don't show it - use generic message
+            is_dog_breed = any(keyword in detected_lower for keyword in DOG_KEYWORDS)
+            
+            if is_dog_breed:
+                # Don't show dog breed name for rejected images - use generic message
+                detected_obj = "a non-dog animal"
+                confidence_pct = round(dog_conf * 100, 1) if dog_conf > 0 else 0
+                error_msg = (
+                    "❌ **Image Validation Failed**\n\n"
+                    f"The uploaded image does not appear to contain a dog. "
+                    f"The system detected {detected_obj} (confidence: {confidence_pct}%).\n\n"
+                    "⚠️ **Please Note:** This health analysis feature is designed specifically for dog images. "
+                    "Please upload a clear photo of your dog to receive health analysis."
+                )
+            else:
+                # Show the detected object if it's not a dog breed (e.g., goat, sheep, cat)
+                confidence_pct = round(dog_conf * 100, 1) if dog_conf > 0 else 0
+                error_msg = (
+                    "❌ **Image Validation Failed**\n\n"
+                    f"The uploaded image does not appear to contain a dog. "
+                    f"The system detected: **{detected_obj}** (confidence: {confidence_pct}%).\n\n"
+                    "⚠️ **Please Note:** This health analysis feature is designed specifically for dog images. "
+                    "Please upload a clear photo of your dog to receive health analysis."
+                )
             
             # Save user message and error response to chat
             image_url = f"/images/{unique_filename}"

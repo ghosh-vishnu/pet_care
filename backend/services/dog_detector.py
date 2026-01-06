@@ -52,7 +52,8 @@ DOG_KEYWORDS = {
     "great dane", "great danes", "corgi", "corgis", "dachshund", "dachshunds",
     "hound", "hounds", "wolfhound", "wolfhounds", "springer", "springers",
     "basset", "bassets", "bloodhound", "bloodhounds", "eskimo", "eskimos",
-    "shiba", "shibas", "chow", "chows", "shar-pei", "shar pei", "basenji", "basenjis"
+    "shiba", "shibas", "chow", "chows", "shar-pei", "shar pei", "basenji", "basenjis",
+    "mexican hairless", "hairless", "xoloitzcuintli", "xolo"
 }
 
 # Keywords for NON-DOG animals that should be explicitly rejected
