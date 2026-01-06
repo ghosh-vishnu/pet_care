@@ -398,20 +398,47 @@ async def combined_upload_and_analyze(
             # Extract just the detected object name from dog_message for cleaner display
             detected_obj = detected_label if detected_label else "unknown object"
             confidence_pct = round(dog_conf * 100, 1) if dog_conf > 0 else 0
-            error_msg = f"**Image Validation Failed**\n\nThe uploaded image does not appear to contain a dog. The system detected: {detected_obj} (confidence: {confidence_pct}%).\n\n**Please Note:** This health analysis feature is designed specifically for dog images. Please upload a clear photo of your dog to receive health analysis."
+            
+            # User-friendly error message (formatted for chat display)
+            error_msg = (
+                "Image Validation Failed\n\n"
+                f"The uploaded image does not appear to contain a dog. "
+                f"The system detected: {detected_obj} (confidence: {confidence_pct}%).\n\n"
+                "Please Note: This health analysis feature is designed specifically for dog images. "
+                "Please upload a clear photo of your dog to receive health analysis."
+            )
             
             # Save user message and error response to chat
-            create_chat_message(db, pet.id, str(user_id), f"Image uploaded: {file.filename or 'image'}.", image_url=f"/images/{unique_filename}")
-            await write_ai_message_to_database(db, pet.id, error_msg, sender_is_user=False)
+            image_url = f"/images/{unique_filename}"
+            user_msg_obj = create_chat_message(db, pet.id, str(user_id), f"📷 Uploaded photo: {file.filename or 'image'}", image_url=image_url)
+            ai_msg_obj = await write_ai_message_to_database(db, pet.id, error_msg, sender_is_user=False)
             
-            # Return error response (don't raise exception so user sees the message in chat)
+            # Prepare messages for response
+            messages_list = []
+            if user_msg_obj and hasattr(user_msg_obj, 'text'):
+                messages_list.append({
+                    "sender": "user",
+                    "text": user_msg_obj.text or "",
+                    "image_url": user_msg_obj.image_url,
+                    "timestamp": user_msg_obj.timestamp.isoformat() if user_msg_obj.timestamp else None
+                })
+            if ai_msg_obj and ai_msg_obj is not None and hasattr(ai_msg_obj, 'text'):
+                messages_list.append({
+                    "sender": "ai",
+                    "text": ai_msg_obj.text or "",
+                    "image_url": None,
+                    "timestamp": ai_msg_obj.timestamp.isoformat() if ai_msg_obj.timestamp else None
+                })
+            
+            # Return error response with messages so frontend can display immediately
             return JSONResponse(
                 status_code=400,
                 content={
                     "status": "validation_failed",
                     "message": "Image does not appear to contain a dog",
                     "detail": dog_message,
-                    "filename": unique_filename
+                    "filename": unique_filename,
+                    "messages": messages_list  # Include messages so frontend can display immediately
                 }
             )
         
@@ -427,10 +454,37 @@ async def combined_upload_and_analyze(
             # This catches cases where breed classifier misclassifies non-dogs as dogs with low confidence
             if breed_conf < 0.35:
                 print(f"[VALIDATION] Rejecting: Breed confidence too low ({breed_conf:.2%} < 0.35). Likely not a dog.")
-                error_msg = f"**Image Validation Failed**\n\nThe uploaded image does not appear to contain a dog. The breed detection confidence was too low ({round(breed_conf*100, 1)}%), suggesting this may not be a dog image.\n\n**Please Note:** This health analysis feature is designed specifically for dog images. Please upload a clear photo of your dog to receive health analysis."
                 
-                create_chat_message(db, pet.id, str(user_id), f"Image uploaded: {file.filename or 'image'}.", image_url=f"/images/{unique_filename}")
-                await write_ai_message_to_database(db, pet.id, error_msg, sender_is_user=False)
+                # User-friendly error message (formatted for chat display)
+                error_msg = (
+                    "Image Validation Failed\n\n"
+                    f"The uploaded image does not appear to contain a dog. "
+                    f"The breed detection confidence was too low ({round(breed_conf*100, 1)}%), "
+                    "suggesting this may not be a dog image.\n\n"
+                    "Please Note: This health analysis feature is designed specifically for dog images. "
+                    "Please upload a clear photo of your dog to receive health analysis."
+                )
+                
+                image_url = f"/images/{unique_filename}"
+                user_msg_obj = create_chat_message(db, pet.id, str(user_id), f"📷 Uploaded photo: {file.filename or 'image'}", image_url=image_url)
+                ai_msg_obj = await write_ai_message_to_database(db, pet.id, error_msg, sender_is_user=False)
+                
+                # Prepare messages for response
+                messages_list = []
+                if user_msg_obj and hasattr(user_msg_obj, 'text'):
+                    messages_list.append({
+                        "sender": "user",
+                        "text": user_msg_obj.text or "",
+                        "image_url": user_msg_obj.image_url,
+                        "timestamp": user_msg_obj.timestamp.isoformat() if user_msg_obj.timestamp else None
+                    })
+                if ai_msg_obj and ai_msg_obj is not None and hasattr(ai_msg_obj, 'text'):
+                    messages_list.append({
+                        "sender": "ai",
+                        "text": ai_msg_obj.text or "",
+                        "image_url": None,
+                        "timestamp": ai_msg_obj.timestamp.isoformat() if ai_msg_obj.timestamp else None
+                    })
                 
                 return JSONResponse(
                     status_code=400,
@@ -439,7 +493,8 @@ async def combined_upload_and_analyze(
                         "message": "Breed detection confidence too low - image may not contain a dog",
                         "breed": breed,
                         "confidence": breed_conf,
-                        "filename": unique_filename
+                        "filename": unique_filename,
+                        "messages": messages_list  # Include messages so frontend can display immediately
                     }
                 )
             

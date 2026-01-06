@@ -79,8 +79,14 @@ function Chat() {
           }
         })
         .filter(msg => msg !== null) // Remove null entries (duplicates)
+        .sort((a, b) => {
+          // Sort messages by timestamp to ensure correct chronological order
+          const timeA = new Date(a.timestamp).getTime()
+          const timeB = new Date(b.timestamp).getTime()
+          return timeA - timeB
+        })
       
-      console.log('Formatted messages:', formattedMessages)
+      console.log('Formatted messages (sorted by timestamp):', formattedMessages)
       setMessages(formattedMessages)
     } catch (err) {
       console.error('Failed to load messages:', err)
@@ -154,52 +160,131 @@ function Chat() {
       
       setIsTyping(true)
       
+      // Clear file input to allow same file upload again (before upload)
+      if (imageInputRef.current) {
+        imageInputRef.current.value = ''
+      }
+      
       if (isImage) {
-        const response = await uploadImage(userId, petId, file)
-        console.log('Upload successful:', response)
-        
-        // Clear file input to allow same file upload again
-        if (imageInputRef.current) {
-          imageInputRef.current.value = ''
-        }
-        
-        // If response includes messages, add them immediately to chat
-        if (response.messages && Array.isArray(response.messages) && response.messages.length > 0) {
-          console.log('Adding messages from upload response:', response.messages)
-          // Add unique IDs and ensure proper format
-          const timestamp = Date.now()
-          const formattedNewMessages = response.messages.map((msg, idx) => ({
-            id: `${timestamp}_${idx}_${msg.image_url || ''}`,
-            sender: msg.sender || 'user',
-            text: msg.text || '',
-            image_url: msg.image_url || null,
-            timestamp: msg.timestamp || new Date().toISOString()
-          }))
+        try {
+          const response = await uploadImage(userId, petId, file)
+          console.log('Upload successful:', response)
           
-          // Add new messages and remove duplicates
-          setMessages(prev => {
-            const existingKeys = new Set(prev.map(m => `${m.timestamp}_${m.image_url}_${m.text?.substring(0, 50)}`))
-            const newMsgs = formattedNewMessages.filter(m => {
-              const key = `${m.timestamp}_${m.image_url}_${m.text?.substring(0, 50)}`
-              return !existingKeys.has(key)
+          // Check if response indicates validation failure (but still has messages)
+          if (response.status === 'validation_failed' || response.status === 'error') {
+            // Validation failed - messages are already in database, reload them
+            // Don't show alert, just reload messages to show the error message in chat
+            await new Promise(resolve => setTimeout(resolve, 300))
+            await loadMessages()
+            setIsTyping(false)
+            return // Exit early - don't continue with success flow
+          }
+          
+          // Success case - If response includes messages, add them immediately to chat
+          if (response.messages && Array.isArray(response.messages) && response.messages.length > 0) {
+            console.log('Adding messages from upload response:', response.messages)
+            // Add unique IDs and ensure proper format
+            const timestamp = Date.now()
+            const formattedNewMessages = response.messages.map((msg, idx) => ({
+              id: `${timestamp}_${idx}_${msg.image_url || ''}`,
+              sender: msg.sender || 'user',
+              text: msg.text || '',
+              image_url: msg.image_url || null,
+              timestamp: msg.timestamp || new Date().toISOString()
+            }))
+            
+            // Add new messages and remove duplicates, then sort by timestamp
+            setMessages(prev => {
+              const existingKeys = new Set(prev.map(m => `${m.timestamp}_${m.image_url}_${m.text?.substring(0, 50)}`))
+              const newMsgs = formattedNewMessages.filter(m => {
+                const key = `${m.timestamp}_${m.image_url}_${m.text?.substring(0, 50)}`
+                return !existingKeys.has(key)
+              })
+              const allMessages = [...prev, ...newMsgs]
+              // Sort by timestamp to maintain correct chronological order
+              return allMessages.sort((a, b) => {
+                const timeA = new Date(a.timestamp).getTime()
+                const timeB = new Date(b.timestamp).getTime()
+                return timeA - timeB
+              })
             })
-            return [...prev, ...newMsgs]
-          })
+            
+            // Also reload once to ensure we have everything
+            setTimeout(() => loadMessages(), 500)
+          } else {
+            // Fallback: reload messages if not included in response
+            await new Promise(resolve => setTimeout(resolve, 500))
+            await loadMessages()
+          }
+        } catch (err) {
+          console.error('Upload failed:', err)
           
-          // Also reload to ensure we have everything
-          setTimeout(() => loadMessages(), 500)
-        } else {
-          // Fallback: reload messages if not included in response
-          await new Promise(resolve => setTimeout(resolve, 500))
-          await loadMessages()
-          setTimeout(() => loadMessages(), 1000)
-          setTimeout(() => loadMessages(), 2000)
+          // Check if it's a validation error (400) with messages in response
+          if (err.response?.status === 400 && err.response?.data) {
+            const errorData = err.response.data
+            
+            // If it's a validation failure, handle it specially - NO POPUP ALERT
+            if (errorData.status === 'validation_failed') {
+              console.log('Validation failed, handling messages from error response - NO ALERT')
+              
+              // If error response includes messages, display them immediately
+              if (errorData.messages && Array.isArray(errorData.messages) && errorData.messages.length > 0) {
+                const formattedNewMessages = errorData.messages.map((msg, idx) => ({
+                  id: `${Date.now()}_${idx}_${msg.image_url || ''}`,
+                  sender: msg.sender || 'user',
+                  text: msg.text || '',
+                  image_url: msg.image_url || null,
+                  timestamp: msg.timestamp || new Date().toISOString()
+                }))
+                
+                // Add messages to chat and sort by timestamp
+                setMessages(prev => {
+                  const existingKeys = new Set(prev.map(m => `${m.timestamp}_${m.image_url}_${m.text?.substring(0, 50)}`))
+                  const newMsgs = formattedNewMessages.filter(m => {
+                    const key = `${m.timestamp}_${m.image_url}_${m.text?.substring(0, 50)}`
+                    return !existingKeys.has(key)
+                  })
+                  const allMessages = [...prev, ...newMsgs]
+                  // Sort by timestamp to maintain correct order
+                  return allMessages.sort((a, b) => {
+                    const timeA = new Date(a.timestamp).getTime()
+                    const timeB = new Date(b.timestamp).getTime()
+                    return timeA - timeB
+                  })
+                })
+                
+                // NO ALERT - error message is shown in chat
+                setIsTyping(false)
+                return // Exit - error message will appear in chat
+              } else {
+                // Fallback: reload messages if not in response
+                await new Promise(resolve => setTimeout(resolve, 300))
+                await loadMessages()
+                setIsTyping(false)
+                return
+              }
+            }
+            
+            // For other 400 errors, show alert
+            const errorMessage = errorData.detail || errorData.message || 'Upload failed. Please try again.'
+            alert(`Upload failed: ${errorMessage}`)
+          } else {
+            // For other errors (network, server, etc.), show alert
+            const errorMessage = err.response?.data?.detail || err.message || 'Upload failed. Please try again.'
+            alert(`Upload failed: ${errorMessage}`)
+          }
         }
       } else {
-        await uploadDocument(userId, petId, file)
-        // Reload messages for documents too
-        await new Promise(resolve => setTimeout(resolve, 500))
-        await loadMessages()
+        try {
+          await uploadDocument(userId, petId, file)
+          // Reload messages for documents too
+          await new Promise(resolve => setTimeout(resolve, 500))
+          await loadMessages()
+        } catch (err) {
+          console.error('Document upload failed:', err)
+          const errorMessage = err.response?.data?.detail || err.message || 'Upload failed. Please try again.'
+          alert(`Upload failed: ${errorMessage}`)
+        }
       }
     } catch (err) {
       console.error('Upload failed:', err)

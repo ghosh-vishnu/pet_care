@@ -77,20 +77,23 @@ async def write_ai_message_to_database(
     """
     Writes a message to the database.
     'content' can be a string (AI message) or a dict (User upload message with image_url).
+    Returns the created ChatMessage object.
     """
+    from services.db_service import create_chat_message
+    
     sender_id = str(user_id) if sender_is_user and user_id else "ai_bot"
     
     if isinstance(content, dict):
         text = content.get("text", "")
         image_url = content.get("image_url")
-        create_chat_message(db, pet_id, sender_id, text, image_url=image_url)
+        message = create_chat_message(db, pet_id, sender_id, text, image_url=image_url)
     elif isinstance(content, str):
-        create_chat_message(db, pet_id, sender_id, content)
+        message = create_chat_message(db, pet_id, sender_id, content)
     else:
         print(f"Warning: Invalid content type ({type(content)}) for database message.")
-        return False
+        return None
     
-    return True
+    return message
 
 def get_breed_specific_advice(breed: str, category: str) -> str:
     """
