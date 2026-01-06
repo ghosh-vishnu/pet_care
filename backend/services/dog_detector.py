@@ -94,8 +94,13 @@ def is_dog_image(image: Image.Image, threshold: float = 0.25):
     # Check both exact match and partial match for better detection
     for non_dog in NON_DOG_ANIMALS:
         if non_dog in name or name in non_dog:
-            print(f"Rejecting non-dog animal: {label} (matched keyword: {non_dog})")
+            print(f"[VALIDATION] ✗ Rejecting non-dog animal: {label} (matched keyword: {non_dog}, confidence: {conf:.2%})")
             return (False, label, conf, "non_dog_animal_detected")
+    
+    # SPECIAL CHECK: Reject "ram" (male goat/sheep) which ImageNet has as a class
+    if "ram" in name and conf >= 0.1:  # Even low confidence for ram = reject
+        print(f"[VALIDATION] ✗ Rejecting ram (goat): {label} (confidence: {conf:.2%})")
+        return (False, label, conf, "ram_detected")
     
     # Method 1: Direct keyword matching in top prediction
     if conf >= threshold:
@@ -114,12 +119,18 @@ def is_dog_image(image: Image.Image, threshold: float = 0.25):
         # First check: Reject if any of top 10 is a non-dog animal (EXTREMELY LOW threshold)
         for prob, idx in zip(top10_probs, top10_indices):
             pred_label = labels_list[int(idx)].lower()
-            # Check both exact and partial matches
+            
+            # SPECIAL: Reject "ram" (goat) even more aggressively
+            if "ram" in pred_label and float(prob) >= 0.02:  # Even 2% confidence = reject
+                print(f"[VALIDATION] ✗ Rejecting ram (goat) in top10: {labels_list[int(idx)]} (confidence: {float(prob):.2%})")
+                return (False, labels_list[int(idx)], float(prob), "ram_in_top10")
+            
+            # Check both exact and partial matches for other non-dog animals
             for non_dog in NON_DOG_ANIMALS:
                 if non_dog in pred_label or pred_label in non_dog:
-                    # Extremely low threshold (0.05) - be ULTRA aggressive in rejecting non-dog animals
-                    if float(prob) >= 0.05:  # Even 5% confidence it's a non-dog animal = reject
-                        print(f"[VALIDATION] Rejecting non-dog animal in top10: {labels_list[int(idx)]} (confidence: {float(prob):.2%}, matched: {non_dog})")
+                    # Extremely low threshold (0.03) - be ULTRA aggressive in rejecting non-dog animals
+                    if float(prob) >= 0.03:  # Even 3% confidence it's a non-dog animal = reject
+                        print(f"[VALIDATION] ✗ Rejecting non-dog animal in top10: {labels_list[int(idx)]} (confidence: {float(prob):.2%}, matched: {non_dog})")
                         return (False, labels_list[int(idx)], float(prob), "non_dog_in_top10")
         
         # Second check: Look for dog keywords in top 10
@@ -137,8 +148,9 @@ def is_dog_image(image: Image.Image, threshold: float = 0.25):
                     dog_found = True
         
         # Only accept if we found a dog with decent confidence AND no non-dog animals were found
-        if dog_found and dog_confidence >= 0.15:
-            print(f"[VALIDATION] Dog confirmed: {dog_label} (confidence: {dog_confidence:.2%})")
+        # INCREASED threshold from 0.15 to 0.25 for better accuracy
+        if dog_found and dog_confidence >= 0.25:
+            print(f"[VALIDATION] ✓ Dog confirmed: {dog_label} (confidence: {dog_confidence:.2%})")
             return (True, dog_label, dog_confidence, "top10_dog_match")
     
     return (False, label, conf, "no_match")
