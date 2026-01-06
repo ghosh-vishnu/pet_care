@@ -55,6 +55,20 @@ DOG_KEYWORDS = {
     "shiba", "shibas", "chow", "chows", "shar-pei", "shar pei", "basenji", "basenjis"
 }
 
+# Keywords for NON-DOG animals that should be explicitly rejected
+NON_DOG_ANIMALS = {
+    "goat", "goats", "sheep", "ram", "ewe", "lamb", "lambs",
+    "cat", "cats", "kitten", "kittens", "feline", "felines",
+    "cow", "cows", "bull", "bulls", "cattle", "calf", "calves",
+    "horse", "horses", "pony", "ponies", "mare", "stallion",
+    "pig", "pigs", "swine", "boar", "sow",
+    "chicken", "chickens", "rooster", "hen",
+    "duck", "ducks", "goose", "geese",
+    "rabbit", "rabbits", "bunny", "bunnies",
+    "hamster", "hamsters", "guinea pig", "guinea pigs",
+    "bird", "birds", "parrot", "parrots"
+}
+
 def predict_label(image: Image.Image):
     """Return (top_label, confidence_float)."""
     model = _load_model()
@@ -69,31 +83,62 @@ def predict_label(image: Image.Image):
 def is_dog_image(image: Image.Image, threshold: float = 0.25):
     """
     Enhanced dog detection using ImageNet classes with multiple checks.
+    Explicitly rejects non-dog animals like goats, sheep, cats, etc.
     Returns (is_dog: bool, top_label: str, confidence: float, detection_method: str).
     """
     label, conf = predict_label(image)
     name = label.lower()
+    
+    # FIRST: Check if it's explicitly a NON-DOG animal - reject immediately (STRICT CHECK)
+    # Check both exact match and partial match for better detection
+    for non_dog in NON_DOG_ANIMALS:
+        if non_dog in name or name in non_dog:
+            print(f"Rejecting non-dog animal: {label} (matched keyword: {non_dog})")
+            return (False, label, conf, "non_dog_animal_detected")
     
     # Method 1: Direct keyword matching in top prediction
     if conf >= threshold:
         if any(k in name for k in DOG_KEYWORDS):
             return (True, label, conf, "keyword_match")
     
-    # Method 2: Check top 5 predictions for dog-related keywords
+    # Method 2: Check top 10 predictions (expanded from 5) for better detection
     model = _load_model()
     tensor = _preprocess(image.convert("RGB")).unsqueeze(0)
     with torch.no_grad():
         logits = model(tensor)
         probs = torch.softmax(logits, dim=1)[0]
-        top5_probs, top5_indices = torch.topk(probs, 5)
+        top10_probs, top10_indices = torch.topk(probs, 10)  # Check top 10 instead of 5
         labels_list = _labels()
         
-        for prob, idx in zip(top5_probs, top5_indices):
+        # First check: Reject if any of top 10 is a non-dog animal (EXTREMELY LOW threshold)
+        for prob, idx in zip(top10_probs, top10_indices):
+            pred_label = labels_list[int(idx)].lower()
+            # Check both exact and partial matches
+            for non_dog in NON_DOG_ANIMALS:
+                if non_dog in pred_label or pred_label in non_dog:
+                    # Extremely low threshold (0.05) - be ULTRA aggressive in rejecting non-dog animals
+                    if float(prob) >= 0.05:  # Even 5% confidence it's a non-dog animal = reject
+                        print(f"[VALIDATION] Rejecting non-dog animal in top10: {labels_list[int(idx)]} (confidence: {float(prob):.2%}, matched: {non_dog})")
+                        return (False, labels_list[int(idx)], float(prob), "non_dog_in_top10")
+        
+        # Second check: Look for dog keywords in top 10
+        dog_found = False
+        dog_confidence = 0.0
+        dog_label = None
+        for prob, idx in zip(top10_probs, top10_indices):
             pred_label = labels_list[int(idx)].lower()
             if any(k in pred_label for k in DOG_KEYWORDS):
-                # If any of top 5 predictions is dog-related with decent confidence
-                if float(prob) >= 0.15:  # Lower threshold for top-5
-                    return (True, labels_list[int(idx)], float(prob), "top5_match")
+                # Track the highest dog confidence
+                if float(prob) > dog_confidence:
+                    dog_confidence = float(prob)
+                    dog_label = labels_list[int(idx)]
+                if float(prob) >= 0.15:  # Decent confidence for dog
+                    dog_found = True
+        
+        # Only accept if we found a dog with decent confidence AND no non-dog animals were found
+        if dog_found and dog_confidence >= 0.15:
+            print(f"[VALIDATION] Dog confirmed: {dog_label} (confidence: {dog_confidence:.2%})")
+            return (True, dog_label, dog_confidence, "top10_dog_match")
     
     return (False, label, conf, "no_match")
 
@@ -106,14 +151,20 @@ def validate_dog_image(image_path: str) -> tuple:
         pil_img = Image.open(image_path).convert("RGB")
         is_dog, label, conf, method = is_dog_image(pil_img)
         
+        print(f"[VALIDATION] Dog detector result: is_dog={is_dog}, label='{label}', confidence={conf:.2%}, method='{method}'")
+        
         if is_dog:
             confidence_pct = round(conf * 100, 1)
+            print(f"[VALIDATION] ✓ Dog confirmed: {label} ({confidence_pct}% confidence)")
             return (True, conf, f"Dog detected: {label} ({confidence_pct}% confidence)", label)
         else:
             # Provide helpful error message
             confidence_pct = round(conf * 100, 1) if conf > 0 else 0
             detected_item = label if label else "unknown object"
+            print(f"[VALIDATION] ✗ Rejected: {detected_item} ({confidence_pct}% confidence) - {method}")
             return (False, conf, f"Image does not appear to contain a dog. Detected object: {detected_item} ({confidence_pct}% confidence)", label)
     except Exception as e:
-        print(f"Dog validation error: {e}")
+        print(f"[VALIDATION] ERROR: Dog validation error: {e}")
+        import traceback
+        traceback.print_exc()
         return (False, 0.0, f"Error validating image: {str(e)}", "unknown")

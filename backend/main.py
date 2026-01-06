@@ -387,22 +387,13 @@ async def combined_upload_and_analyze(
             raise HTTPException(status_code=500, detail="Failed to save uploaded file")
         
         # STEP 1: Validate that the image contains a dog BEFORE any analysis
+        # CRITICAL: Dog detector is the PRIMARY and ONLY validator
+        # Breed classifier should NOT be used for validation - it can misclassify non-dogs
         from services.dog_detector import validate_dog_image
         is_valid_dog, dog_conf, dog_message, detected_label = validate_dog_image(dst)
         
-        # Also check breed classifier as secondary validation
-        breed_detected = False
-        breed, breed_conf = None, 0.0
-        try:
-            breed, breed_conf = predict_breed(dst)
-            # If breed classifier returns a valid breed with decent confidence, it's likely a dog
-            if breed and breed_conf > 0.3 and "unknown" not in breed.lower():
-                breed_detected = True
-        except Exception as e:
-            print(f"Breed prediction error during validation: {e}")
-        
-        # Final validation: Must pass either dog detector OR breed classifier
-        if not is_valid_dog and not breed_detected:
+        # If dog detector rejects, immediately reject - don't even check breed classifier
+        if not is_valid_dog:
             # Create user-friendly error message (readable and clear)
             # Extract just the detected object name from dog_message for cleaner display
             detected_obj = detected_label if detected_label else "unknown object"
@@ -424,20 +415,43 @@ async def combined_upload_and_analyze(
                 }
             )
         
-        # If we reach here, image is validated as dog image
-        # Continue with breed detection if not already done
-        if not breed_detected:
-            try:
-                breed, breed_conf = predict_breed(dst)
-                # Double-check: if breed is still invalid, use dog detector result
-                if not breed or breed_conf < 0.2 or "unknown" in breed.lower():
-                    breed = detected_label if is_valid_dog else "Unknown Breed"
-                    breed_conf = dog_conf if is_valid_dog else 0.0
-            except Exception as e:
-                print(f"Breed prediction error: {e}")
-                # Fallback to dog detector result
-                breed = detected_label if is_valid_dog else "Unknown Breed"
-                breed_conf = dog_conf if is_valid_dog else 0.0
+        # If we reach here, image is validated as dog image by dog detector
+        # ADDITIONAL SAFETY CHECK: Breed classifier confidence check
+        # If breed classifier gives very low confidence, it might be a non-dog that slipped through
+        breed, breed_conf = None, 0.0
+        try:
+            breed, breed_conf = predict_breed(dst)
+            print(f"[VALIDATION] Breed classifier result: {breed} ({breed_conf:.2%} confidence)")
+            
+            # STRICT CHECK: Reject if breed confidence is too low (< 0.35)
+            # This catches cases where breed classifier misclassifies non-dogs as dogs with low confidence
+            if breed_conf < 0.35:
+                print(f"[VALIDATION] Rejecting: Breed confidence too low ({breed_conf:.2%} < 0.35). Likely not a dog.")
+                error_msg = f"**Image Validation Failed**\n\nThe uploaded image does not appear to contain a dog. The breed detection confidence was too low ({round(breed_conf*100, 1)}%), suggesting this may not be a dog image.\n\n**Please Note:** This health analysis feature is designed specifically for dog images. Please upload a clear photo of your dog to receive health analysis."
+                
+                create_chat_message(db, pet.id, str(user_id), f"Image uploaded: {file.filename or 'image'}.", image_url=f"/images/{unique_filename}")
+                await write_ai_message_to_database(db, pet.id, error_msg, sender_is_user=False)
+                
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "status": "validation_failed",
+                        "message": "Breed detection confidence too low - image may not contain a dog",
+                        "breed": breed,
+                        "confidence": breed_conf,
+                        "filename": unique_filename
+                    }
+                )
+            
+            # Sanity check: Reject unknown breeds
+            if not breed or "unknown" in breed.lower():
+                breed = detected_label if detected_label else "Unknown Breed"
+                breed_conf = dog_conf if dog_conf > 0 else 0.0
+        except Exception as e:
+            print(f"Breed prediction error: {e}")
+            # Fallback to dog detector result
+            breed = detected_label if detected_label else "Unknown Breed"
+            breed_conf = dog_conf if dog_conf > 0 else 0.0
         
         # Analyze image - Basic image quality
         try:

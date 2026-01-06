@@ -63,8 +63,12 @@
 
 .message-image {
   max-width: 200px;
+  max-height: 200px;
   border-radius: 8px;
   margin-top: 8px;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
 }
 
 .typing {
