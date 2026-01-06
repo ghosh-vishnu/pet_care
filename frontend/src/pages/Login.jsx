@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { checkPetProfileStatus } from '../services/api'
-import { getPetId, setPetId } from '../config'
 import './Login.css'
 
 function Login() {
@@ -20,20 +18,9 @@ function Login() {
 
     try {
       const result = await login(email, password)
-      const userId = result.user.id
-      const petId = getPetId()
-      
-      // Check if pet profile exists
-      try {
-        const profileStatus = await checkPetProfileStatus(userId, petId)
-        if (profileStatus.status === 'EXISTS') {
-          navigate('/')
-        } else {
-          navigate('/pet-profile', { state: { userId } })
-        }
-      } catch (err) {
-        navigate('/pet-profile', { state: { userId } })
-      }
+      // After successful login, always redirect to home page
+      // Pet profile page is only shown during signup (first time)
+      navigate('/')
     } catch (err) {
       setError(err.response?.data?.detail || 'Login failed. Please check your credentials.')
     } finally {
@@ -81,6 +68,7 @@ function Login() {
 }
 
 export default Login
+
 
 
 
