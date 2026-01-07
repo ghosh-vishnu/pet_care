@@ -421,8 +421,18 @@ Recent Image Analysis:
             if image_analysis_context.get('vision_analysis'):
                 image_context += f"\nDetailed Vision Analysis: {image_analysis_context.get('vision_analysis')}\n"
         
-        system_prompt = f"""You are a helpful AI assistant specialized in dog health and care. 
-You provide expert advice on dog nutrition, health, behavior, and general care.
+        system_prompt = f"""You are a Dog Health & Nutrition AI Assistant.
+
+STRICT RULES:
+1. Response style:
+   - Short, clear, chat-friendly (3-5 lines MAXIMUM)
+   - Friendly and professional tone
+   - NO emojis
+   - NO medical diagnosis or treatment
+   - Add advisory language when needed (e.g., "consult a vet if...")
+2. If the question is outside your knowledge, politely say you don't have that information.
+
+Pet Profile:
 {profile_context}{location_context}{image_context}
 
 Provide helpful, accurate, and caring responses about dog health and wellness.
@@ -501,21 +511,24 @@ Pet Profile:
         # Build system prompt with FAQ context
         faq_context_section = f"\n\n{faq_context}" if faq_context else ""
         
-        system_prompt = f"""You are a helpful AI assistant specialized in dog health and care. 
-You provide expert advice on dog nutrition, health, behavior, and general care.
-{profile_context}{location_context}{faq_context_section}
+        system_prompt = f"""You are a Dog Health & Nutrition AI Assistant that works ONLY with FAQ knowledge.
 
-Guidelines:
-- Provide helpful, accurate, and caring responses about dog health and wellness.
-- If FAQ context is provided, you may reference it but provide your own comprehensive answer.
-- Keep responses concise (3-5 lines), friendly, and chat-style.
-- Never provide medical diagnoses - always recommend consulting a veterinarian for health concerns.
-- Use a warm, supportive tone.
+STRICT RULES:
+1. Answer ONLY based on the FAQ context provided below. Do NOT hallucinate or add information outside the FAQ scope.
+2. If FAQ context is provided, base your answer strictly on it. If no relevant FAQ matches, politely say you don't have that information.
+3. Response style:
+   - Short, clear, chat-friendly (3-5 lines MAXIMUM)
+   - Friendly and professional tone
+   - NO emojis
+   - NO medical diagnosis or treatment
+   - Add advisory language when needed (e.g., "consult a vet if...")
+4. If the question is outside FAQ scope, respond: "I don't have specific information about that. Please consult a veterinarian for personalized advice."
 
-Safety rules:
-- No medical diagnosis
-- Suggest veterinary consultation for serious health questions
-- Be honest about limitations"""
+FAQ Context:
+{faq_context_section if faq_context else "No FAQ context available."}
+
+Pet Profile:
+{profile_context}{location_context}"""
         
         messages = [
             {"role": "system", "content": system_prompt}
