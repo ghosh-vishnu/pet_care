@@ -25,7 +25,11 @@ from services.dog_detector import is_dog_image
 from services.breed_classifier import predict_breed
 from services.image_service import analyze_image
 from services.storage import ensure_dirs, UPLOAD_DIR, REPORT_DIR, register_image
-from services.llm_service import generate_dynamic_answer, write_ai_message_to_database
+from services.llm_service import (
+    generate_dynamic_answer,
+    generate_dynamic_answer_with_faq_context,
+    write_ai_message_to_database
+)
 from services.nutrition_service import calculate_and_suggest_nutrition, NutritionResult
 
 # Create tables
@@ -100,6 +104,45 @@ def root():
 def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "cors": "enabled"}
+
+@app.get("/test/faq-search")
+async def test_faq_search(q: str = "Low-fat diet recommendation for dogs?"):
+    """
+    Test endpoint for FAQ semantic search.
+    Example: /test/faq-search?q=mera%20dog%20subah%20yellow%20vomit%20kyu%20karta%20h
+    """
+    try:
+        from services.faq_service import search_faqs, get_faq_answer
+        
+        # Test search
+        results = search_faqs(q, top_k=5)
+        
+        # Test answer retrieval
+        answer, best_faq, confidence, score = get_faq_answer(q)
+        
+        return {
+            "query": q,
+            "top_results": [
+                {
+                    "question": faq["question"],
+                    "answer": faq["answer"][:100] + "..." if len(faq["answer"]) > 100 else faq["answer"],
+                    "similarity": float(sim)
+                }
+                for faq, sim in results
+            ],
+            "best_match": {
+                "question": best_faq["question"] if best_faq else None,
+                "answer": answer[:200] + "..." if answer and len(answer) > 200 else answer,
+                "confidence": confidence,
+                "similarity_score": float(score)
+            } if answer else None
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
 
 # Authentication endpoints
 @app.post("/auth/register")
@@ -236,14 +279,113 @@ async def chat_in_session(
     # Save user message with image URL if provided
     create_chat_message(db, pet.id, str(user_id), user_msg, image_url=image_url)
     
-    # Generate AI response with image analysis context
+    # STEP 1: INTENT ROUTING (runs BEFORE any AI/DB calls)
+    from services.intent_router import detect_intent, get_greeting_response, should_skip_ai_processing
+    
+    has_image = image_url is not None or image_analysis_context is not None
+    intent = detect_intent(user_msg, has_image=has_image)
+    
+    # STEP 2: Route based on intent
     history = []
-    answer = generate_dynamic_answer(user_msg, history, location, pet_profile, image_analysis_context)
+    pet_name = pet_profile.get('petName') if pet_profile else None
+    
+    if intent == "GREETING":
+        # INSTANT response - NO embeddings, NO DB queries, NO GPT calls
+        answer = get_greeting_response(pet_name)
+        source = "system"
+        confidence = "high"
+        matched_question = None
+        score = 1.0
+    
+    elif intent == "IMAGE_QUERY":
+        # Image analysis flow - use existing logic (unchanged)
+        answer = generate_dynamic_answer(
+            user_msg, history, location, pet_profile, image_analysis_context
+        )
+        source = "gpt"
+        confidence = "medium"
+        matched_question = None
+        score = 1.0
+    
+    else:  # intent == "FAQ_QUESTION"
+        # Optimized FAQ flow with database vector search
+        try:
+            from services.faq_service_optimized import (
+                get_faq_answer_optimized,
+                get_faq_context_for_gpt_optimized
+            )
+            
+            # Single embedding + single DB query
+            faq_answer, best_faq, conf_level, similarity = get_faq_answer_optimized(
+                db, user_msg, top_k=3
+            )
+            
+            # Route based on confidence
+            if faq_answer and (conf_level == "high" or conf_level == "medium"):
+                # Strong FAQ match - return FAQ answer directly (no GPT call)
+                answer = faq_answer
+                source = "faq"
+                confidence = conf_level
+                matched_question = best_faq["question"] if best_faq else None
+                score = similarity
+            
+            elif faq_answer and conf_level == "low":
+                # Weak FAQ match - enhance with GPT using FAQ context
+                try:
+                    faq_context = get_faq_context_for_gpt_optimized(db, user_msg, top_k=2)
+                    answer = generate_dynamic_answer_with_faq_context(
+                        user_msg, history, location, pet_profile, faq_context
+                    )
+                except Exception as e:
+                    print(f"Error in GPT with FAQ context: {e}")
+                    # Fallback to direct FAQ answer
+                    answer = faq_answer
+                source = "gpt"
+                confidence = "low"
+                matched_question = best_faq["question"] if best_faq else None
+                score = similarity
+            
+            else:
+                # No FAQ match - use GPT with FAQ context as background
+                try:
+                    faq_context = get_faq_context_for_gpt_optimized(db, user_msg, top_k=3)
+                    answer = generate_dynamic_answer_with_faq_context(
+                        user_msg, history, location, pet_profile, faq_context
+                    )
+                except Exception as e:
+                    print(f"Error in FAQ context generation: {e}")
+                    # Fallback to regular GPT answer
+                    answer = generate_dynamic_answer(
+                        user_msg, history, location, pet_profile, None
+                    )
+                source = "gpt"
+                confidence = "none"
+                matched_question = None
+                score = 0.0
+        
+        except Exception as e:
+            # FAQ service unavailable - use regular GPT fallback
+            print(f"Error in FAQ service, using GPT fallback: {e}")
+            import traceback
+            traceback.print_exc()
+            answer = generate_dynamic_answer(
+                user_msg, history, location, pet_profile, None
+            )
+            source = "gpt"
+            confidence = "none"
+            matched_question = None
+            score = 0.0
     
     # Save AI response using the new function
     await write_ai_message_to_database(db, pet.id, answer, sender_is_user=False)
     
-    return ChatAnswer(answer=answer, matched_question=None, score=1.0)
+    return ChatAnswer(
+        answer=answer,
+        matched_question=matched_question,
+        score=score,
+        source=source,
+        confidence=confidence
+    )
 
 @app.get("/user/{user_id}/pet/{pet_id}/chat/messages")
 async def get_chat_messages_endpoint(

@@ -21,6 +21,7 @@ efficientnet-pytorch
 sqlalchemy
 psycopg2-binary
 alembic
+pgvector
 python-jose[cryptography]
 passlib[bcrypt]
 python-multipart

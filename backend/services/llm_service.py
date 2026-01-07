@@ -462,3 +462,92 @@ When image analysis is provided, incorporate those observations into your respon
             # Fallback to intelligent responses when API fails
             return generate_fallback_response(question, pet_profile)
 
+
+def generate_dynamic_answer_with_faq_context(
+    question: str,
+    history: list,
+    location: Optional[str],
+    pet_profile: dict,
+    faq_context: str = ""
+) -> str:
+    """
+    Generates an AI response using OpenAI with FAQ context.
+    Used when FAQ match is weak or when GPT fallback is needed.
+    """
+    # Step 1: If no OpenAI client, use fallback
+    if client is None:
+        print(f"No OpenAI client available, using fallback response")
+        return generate_fallback_response(question, pet_profile)
+    
+    # Step 2: Use OpenAI with FAQ context
+    try:
+        # Build context from pet profile
+        profile_context = ""
+        if pet_profile:
+            profile_context = f"""
+Pet Profile:
+- Name: {pet_profile.get('petName', 'Unknown')}
+- Breed: {pet_profile.get('breed', 'Unknown')}
+- Age: {pet_profile.get('age', 'Unknown')}
+- Weight: {pet_profile.get('weight', 'Unknown')}
+- Gender: {pet_profile.get('gender', 'Unknown')}
+- Activity Level: {pet_profile.get('activityLevel', 'Unknown')}
+- Medical Conditions: {', '.join(pet_profile.get('medicalConditions', []))}
+- Goals: {', '.join(pet_profile.get('goals', []))}
+"""
+        
+        location_context = f"\nLocation: {location}" if location else ""
+        
+        # Build system prompt with FAQ context
+        faq_context_section = f"\n\n{faq_context}" if faq_context else ""
+        
+        system_prompt = f"""You are a helpful AI assistant specialized in dog health and care. 
+You provide expert advice on dog nutrition, health, behavior, and general care.
+{profile_context}{location_context}{faq_context_section}
+
+Guidelines:
+- Provide helpful, accurate, and caring responses about dog health and wellness.
+- If FAQ context is provided, you may reference it but provide your own comprehensive answer.
+- Keep responses concise (3-5 lines), friendly, and chat-style.
+- Never provide medical diagnoses - always recommend consulting a veterinarian for health concerns.
+- Use a warm, supportive tone.
+
+Safety rules:
+- No medical diagnosis
+- Suggest veterinary consultation for serious health questions
+- Be honest about limitations"""
+        
+        messages = [
+            {"role": "system", "content": system_prompt}
+        ]
+        
+        # Add history if available
+        for msg in history[-5:]:  # Last 5 messages for context
+            messages.append({"role": "user", "content": msg.get("question", "")})
+            messages.append({"role": "assistant", "content": msg.get("answer", "")})
+        
+        # Add current question
+        messages.append({"role": "user", "content": question})
+        
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            temperature=0.7,
+            max_tokens=500
+        )
+        
+        return response.choices[0].message.content
+        
+    except Exception as e:
+        error_str = str(e)
+        print(f"Error generating AI response with FAQ context: {e}")
+        
+        # Check for specific error types
+        if "insufficient_quota" in error_str or "429" in error_str:
+            return "⚠️ Your OpenAI API quota has been exceeded. Please add credits to your OpenAI account at https://platform.openai.com/account/billing. Until then, I'll provide helpful responses based on your pet's profile."
+        elif "invalid_api_key" in error_str or "401" in error_str:
+            return "⚠️ OpenAI API key is invalid. Please check your API key in the .env file."
+        else:
+            # Fallback to intelligent responses when API fails
+            return generate_fallback_response(question, pet_profile)
+

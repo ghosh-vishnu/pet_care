@@ -11,6 +11,8 @@ class ChatAnswer(BaseModel):
     answer: str
     matched_question: Optional[str] = None
     score: float
+    source: Optional[str] = "gpt"  # "faq" or "gpt"
+    confidence: Optional[str] = "medium"  # "high", "medium", "low", "none"
 
 class ImageAnalysis(BaseModel):
     image_id: str

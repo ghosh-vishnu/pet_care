@@ -1,0 +1,248 @@
+[
+  {
+    "question": "Low-fat diet recommendation for dogs?",
+    "answer": "Low-fat diets can be helpful for dogs with pancreatitis or fat sensitivity. Focus on lean proteins and easy-to-digest carbs. Avoid fatty treats and table scraps completely.",
+    "category": "Medical Diets"
+  },
+  {
+    "question": "Is grain-free diet recommended for dogs with heart issues?",
+    "answer": "Grain-free isn't automatically better for heart health. Some studies suggest potential links between certain grain-free formulas and heart concerns. Focus on balanced nutrition rather than avoiding grains.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Best protein source for dogs with chicken allergy?",
+    "answer": "Try novel proteins like lamb, duck, fish, or venison. Introduce any new protein gradually over several days. Single-protein diets work best for identifying allergies.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Should I add omega-3 for joint health?",
+    "answer": "Omega-3 fatty acids can support joint and skin health over time. They may help reduce inflammation naturally. Always use the right dosage for your dog's size.",
+    "category": "Supplements"
+  },
+  {
+    "question": "How much fish oil should I give?",
+    "answer": "Fish oil dosage depends on your dog's weight and the product's concentration. Too much can cause digestive issues. Follow product guidelines or ask your vet for advice.",
+    "category": "Supplements"
+  },
+  {
+    "question": "Do dogs need multivitamins if eating kibble?",
+    "answer": "Most quality commercial kibble already contains essential nutrients. Extra multivitamins usually aren't needed and can cause imbalances. More isn't always better.",
+    "category": "Supplements"
+  },
+  {
+    "question": "Is glucosamine useful for hip dysplasia?",
+    "answer": "Glucosamine may help support joint comfort and mobility in some dogs. Results vary between individuals. It's often used as part of long-term joint care plans.",
+    "category": "Supplements"
+  },
+  {
+    "question": "Are probiotics beneficial for dogs with GI issues?",
+    "answer": "Probiotics can support healthy gut balance and digestion. They may be helpful during episodes of diarrhea or stress. Benefits depend on the specific strain and product quality.",
+    "category": "Supplements"
+  },
+  {
+    "question": "Does nutritional yeast provide B12?",
+    "answer": "Some nutritional yeast products are fortified with B vitamins, including B12. Not all brands contain these nutrients. Always check the label carefully.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Are sweet potatoes better than white potatoes?",
+    "answer": "Both provide carbohydrates, but sweet potatoes offer more fiber and beta-carotene. Always cook either one thoroughly before feeding. Both can be healthy options.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Can dogs eat turmeric?",
+    "answer": "Turmeric is generally safe in small amounts and may help with inflammation. Too much can cause stomach upset. Introduce it slowly and in moderation.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Is garlic toxic to dogs?",
+    "answer": "Yes, garlic can be toxic to dogs, especially in large amounts. It can damage red blood cells. Always avoid feeding garlic to your dog.",
+    "category": "Food Safety"
+  },
+  {
+    "question": "Is pumpkin good for constipation?",
+    "answer": "Pumpkin's high fiber content helps regulate digestion. It can help with mild constipation or loose stools. Use plain, cooked pumpkin without additives.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Can dogs eat dairy products?",
+    "answer": "Some dogs tolerate small amounts of dairy, but many are lactose intolerant. Dairy can cause diarrhea or gas. Low-lactose options like plain yogurt are safer.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Is peanut butter safe for dogs?",
+    "answer": "Peanut butter is safe in small amounts if it doesn't contain xylitol, which is toxic. It's high in fat and calories, so use portion control.",
+    "category": "Food Safety"
+  },
+  {
+    "question": "Is corn a filler in dog food?",
+    "answer": "Corn provides carbohydrates and energy when properly processed. It's not harmful for most dogs. Focus on overall ingredient quality rather than avoiding specific grains.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "What is better, chicken or lamb for sensitive stomach?",
+    "answer": "It depends on your individual dog. Some digest chicken easily, while others tolerate lamb better. Single-protein diets help identify what works for your dog.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "How to read an ingredient label on dog food?",
+    "answer": "Ingredients are listed by weight before cooking, so the first few ingredients matter most. Look for named protein sources like 'chicken' rather than vague terms like 'meat meal'.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "What does AAFCO complete and balanced mean?",
+    "answer": "It means the food meets minimum nutritional standards for a specific life stage like puppy, adult, or senior. It doesn't indicate ingredient quality, just that basic requirements are met.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Can I feed puppy food to a pregnant dog?",
+    "answer": "Puppy food is often used during late pregnancy because of higher energy needs. Adjust portions carefully to avoid overfeeding. Consult your vet for specific recommendations.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Are prescription diets necessary or marketing?",
+    "answer": "Prescription diets are formulated for specific health conditions like kidney disease or allergies. They can be beneficial when used appropriately. Not every dog needs them long-term.",
+    "category": "Medical Diets"
+  },
+  {
+    "question": "What does by-product meal mean?",
+    "answer": "By-product meals include parts of animals beyond muscle meat, like organs and bones. Quality varies between brands. Reputable companies ensure safety and nutritional value.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Are grain-free diets harmful?",
+    "answer": "Grain-free diets aren't inherently harmful, but they may not suit every dog. Some formulations have been linked to heart concerns in certain breeds. Balance is key.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "What diet is suitable for dogs with food allergies?",
+    "answer": "Limited-ingredient or novel protein diets work best. Strict diet trials require no treats or extras for several weeks. It takes time to see results.",
+    "category": "Medical Diets"
+  },
+  {
+    "question": "Is a hydrolyzed protein diet effective?",
+    "answer": "Hydrolyzed diets use broken-down proteins that are less likely to trigger allergic reactions. They're commonly used in elimination trials. Effectiveness varies by individual dog.",
+    "category": "Medical Diets"
+  },
+  {
+    "question": "What elimination diet should I use?",
+    "answer": "Use a diet with a single novel protein or hydrolyzed protein source. No treats, table scraps, or extras during the trial. Strict adherence is essential for accurate results.",
+    "category": "Medical Diets"
+  },
+  {
+    "question": "How long does an allergy food trial take?",
+    "answer": "Most food trials last 8-12 weeks to see clear results. Improvement may be gradual. Stay consistent throughout the entire trial period without cheating.",
+    "category": "Medical Diets"
+  },
+  {
+    "question": "My dog is underweight, what should I feed?",
+    "answer": "Underweight dogs may benefit from higher-calorie, nutrient-dense diets. Increase meals gradually rather than all at once. Avoid sudden dietary changes that could upset digestion.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "My dog refuses kibble, what should I do?",
+    "answer": "Loss of interest could be behavioral or diet-related. Avoid switching foods too frequently, which can create picky eating. Try adding warm water or healthy toppers to increase appeal.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "What to feed after vomiting?",
+    "answer": "After vomiting stops, offer small portions of easily digestible food like plain boiled chicken and rice. Gradually return to normal diet over a few days. Keep your dog well-hydrated.",
+    "category": "Medical Diets"
+  },
+  {
+    "question": "My dog eats poop, is this due to nutritional deficiency?",
+    "answer": "Stool eating is usually behavioral rather than nutritional. It can happen due to boredom, stress, or curiosity. A diet review can help rule out nutritional causes.",
+    "category": "Dog Behavior"
+  },
+  {
+    "question": "My dog has tear stains, does food cause this?",
+    "answer": "Tear stains can be influenced by genetics, eye structure, or diet. Some dogs improve with diet changes, but results vary. Regular face cleaning helps too.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "What food helps reduce shedding?",
+    "answer": "Diets rich in omega-3 fatty acids support healthy skin and coat. Consistent, quality nutrition helps reduce excessive shedding over time. Patience is key.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Best diet for dogs with arthritis?",
+    "answer": "Dogs with arthritis benefit from balanced diets with joint-support nutrients like omega-3s. Maintaining a healthy weight reduces stress on joints. Every pound counts.",
+    "category": "Medical Diets"
+  },
+  {
+    "question": "Is vegan diet safe for dogs?",
+    "answer": "Dogs can survive on properly formulated vegan diets, but deficiency risks exist. Careful nutritional planning is essential. This approach isn't suitable for all dogs.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Can dogs eat chocolate?",
+    "answer": "No, chocolate is toxic to dogs and can cause serious health issues or even death. Even small amounts can be dangerous. Always keep chocolate away from dogs.",
+    "category": "Food Safety"
+  },
+  {
+    "question": "Should I use feeding toys or lick mats?",
+    "answer": "Feeding toys and lick mats slow down eating and provide mental stimulation. They help reduce boredom and anxiety. Always supervise your dog during use.",
+    "category": "Dog Behavior"
+  },
+  {
+    "question": "Is intermittent fasting safe for dogs?",
+    "answer": "Intermittent fasting isn't suitable for all dogs. Some may tolerate it, but others may experience issues. Regular, consistent feeding schedules are safer for most pets.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Does slow feeding help with bloating?",
+    "answer": "Slow feeding reduces gulping and air intake, which may lower bloating risk in some dogs. Raised bowls aren't always recommended. Consult your vet for specific advice.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "What to feed a dog with gastrointestinal IBD?",
+    "answer": "Dogs with IBD often benefit from easily digestible or novel protein diets. Consistency is critical - stick to the same food. Make any diet changes very gradually.",
+    "category": "Medical Diets"
+  },
+  {
+    "question": "Diet plan after GI surgery?",
+    "answer": "Post-surgery diets should be soft, easily digestible, and given in small, frequent portions. Gradually transition back to normal food as healing progresses. Follow your vet's specific recovery guidelines.",
+    "category": "Medical Diets"
+  },
+  {
+    "question": "What to feed a dog with anemia?",
+    "answer": "Dogs with anemia need nutritionally complete diets that support red blood cell production. Iron supplements alone aren't always the solution. Veterinary guidance is essential.",
+    "category": "Medical Diets"
+  },
+  {
+    "question": "Low-phosphorus protein options?",
+    "answer": "Egg whites and some lean meats are lower in phosphorus. Cooking methods affect mineral content. Overall diet balance remains important for kidney health.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "How much calcium does a large-breed puppy need?",
+    "answer": "Large-breed puppies need controlled calcium intake for proper bone growth. Too much calcium can cause skeletal development issues. Balance is critical during growth.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Should large-breed puppies eat normal puppy food?",
+    "answer": "Large-breed puppies should eat specially formulated large-breed puppy diets. These control calcium and energy levels to prevent growth problems. Regular puppy food may be unsuitable.",
+    "category": "Dog Nutrition"
+  },
+  {
+    "question": "Why does my dog vomit yellow bile in the morning?",
+    "answer": "Morning bile vomiting often happens because of an empty stomach. Try a small late-night meal or snack. If it persists, consult your vet to rule out other causes.",
+    "category": "Dog Health"
+  },
+  {
+    "question": "Why does my dog eat grass?",
+    "answer": "Grass eating is common and usually harmless. It may be related to boredom, digestion, or just curiosity. Most dogs do it occasionally without issues.",
+    "category": "Dog Behavior"
+  },
+  {
+    "question": "Can I add supplements without vet approval?",
+    "answer": "Adding supplements without guidance can cause nutrient imbalances. Most quality diets already meet requirements. Choose supplements carefully and discuss with your vet first.",
+    "category": "Supplements"
+  },
+  {
+    "question": "Is homemade food cheaper than kibble?",
+    "answer": "Homemade diets may or may not be cheaper depending on ingredients and needed supplements. Cost shouldn't compromise nutritional balance. Proper planning is essential for health.",
+    "category": "Dog Nutrition"
+  }
+]
+
