@@ -12,6 +12,7 @@ function Chat() {
   const messagesEndRef = useRef(null)
   const fileInputRef = useRef(null)
   const imageInputRef = useRef(null)
+  const isLoadingMessagesRef = useRef(false)
 
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
@@ -40,7 +41,15 @@ function Chat() {
     }
   }
 
-  const loadMessages = async () => {
+  const loadMessages = async (silent = false) => {
+    // Prevent multiple simultaneous calls
+    if (isLoadingMessagesRef.current) {
+      if (!silent) console.log('loadMessages already in progress, skipping...')
+      return
+    }
+    
+    isLoadingMessagesRef.current = true
+    
     try {
       const userId = getUserId()
       const petId = getPetId()
@@ -51,7 +60,7 @@ function Chat() {
       }
       
       const response = await getChatMessages(userId, petId)
-      console.log('Loaded messages:', response)
+      if (!silent) console.log('Loaded messages:', response)
       
       // Handle both response formats for backward compatibility
       const messagesList = response?.messages || response || []
@@ -86,12 +95,14 @@ function Chat() {
           return timeA - timeB
         })
       
-      console.log('Formatted messages (sorted by timestamp):', formattedMessages)
+      if (!silent) console.log('Formatted messages (sorted by timestamp):', formattedMessages)
       setMessages(formattedMessages)
     } catch (err) {
       console.error('Failed to load messages:', err)
       // Keep existing messages if loading fails
       console.error('Error details:', err.response?.data || err.message)
+    } finally {
+      isLoadingMessagesRef.current = false
     }
   }
 
@@ -175,7 +186,7 @@ function Chat() {
             // Validation failed - messages are already in database, reload them
             // Don't show alert, just reload messages to show the error message in chat
             await new Promise(resolve => setTimeout(resolve, 300))
-            await loadMessages()
+            await loadMessages(true) // silent mode
             setIsTyping(false)
             return // Exit early - don't continue with success flow
           }
@@ -208,13 +219,10 @@ function Chat() {
                 return timeA - timeB
               })
             })
-            
-            // Also reload once to ensure we have everything
-            setTimeout(() => loadMessages(), 500)
           } else {
-            // Fallback: reload messages if not included in response
+            // Fallback: reload messages if not included in response (silent mode)
             await new Promise(resolve => setTimeout(resolve, 500))
-            await loadMessages()
+            await loadMessages(true) // silent mode
           }
         } catch (err) {
           console.error('Upload failed:', err)
@@ -257,9 +265,9 @@ function Chat() {
                 setIsTyping(false)
                 return // Exit - error message will appear in chat
               } else {
-                // Fallback: reload messages if not in response
+                // Fallback: reload messages if not in response (silent mode)
                 await new Promise(resolve => setTimeout(resolve, 300))
-                await loadMessages()
+                await loadMessages(true) // silent mode
                 setIsTyping(false)
                 return
               }
@@ -277,9 +285,9 @@ function Chat() {
       } else {
         try {
           await uploadDocument(userId, petId, file)
-          // Reload messages for documents too
+          // Reload messages for documents too (silent mode)
           await new Promise(resolve => setTimeout(resolve, 500))
-          await loadMessages()
+          await loadMessages(true) // silent mode
         } catch (err) {
           console.error('Document upload failed:', err)
           const errorMessage = err.response?.data?.detail || err.message || 'Upload failed. Please try again.'

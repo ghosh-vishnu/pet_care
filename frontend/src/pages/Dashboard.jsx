@@ -21,16 +21,29 @@ function Dashboard() {
 
       try {
         const petId = getPetId()
+        if (!petId) {
+          setLoading(false)
+          return
+        }
+        
         const response = await checkPetProfileStatus(user.id, petId)
         
         if (response.status === 'EXISTS' && response.profile_data) {
           setPetProfile(response.profile_data)
+          setError('')
         } else {
-          setError('Pet profile not found. Please complete your pet profile.')
+          // Not an error, just missing profile - user can create one
+          setPetProfile(null)
+          setError('')
         }
       } catch (err) {
-        setError('Failed to load profile data.')
         console.error('Dashboard error:', err)
+        // Only set error for actual failures, not missing profiles
+        if (err.response?.status !== 404) {
+          setError('Failed to load profile data.')
+        } else {
+          setError('')
+        }
       } finally {
         setLoading(false)
       }
@@ -57,11 +70,18 @@ function Dashboard() {
         {error && (
           <div className="error-message">
             {error}
+          </div>
+        )}
+
+        {!petProfile && !error && (
+          <div className="dashboard-card empty-state-card">
+            <h2>🐾 Welcome to Dog Health AI!</h2>
+            <p>Get started by creating your pet's profile to track their health and get personalized insights.</p>
             <button 
-              className="btn-link" 
+              className="btn-primary"
               onClick={() => navigate('/pet-profile', { state: { userId: user?.id } })}
             >
-              Complete Profile
+              Create Pet Profile
             </button>
           </div>
         )}
@@ -126,18 +146,6 @@ function Dashboard() {
                 </button>
               </div>
             </div>
-          </div>
-        )}
-
-        {!petProfile && !error && (
-          <div className="empty-state">
-            <p>No profile data available.</p>
-            <button 
-              className="btn-primary"
-              onClick={() => navigate('/pet-profile', { state: { userId: user?.id } })}
-            >
-              Create Pet Profile
-            </button>
           </div>
         )}
       </div>

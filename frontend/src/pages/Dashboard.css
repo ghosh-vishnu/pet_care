@@ -104,6 +104,24 @@
   padding: 40px;
 }
 
+.empty-state-card {
+  text-align: center;
+  padding: 40px;
+  background: #f9f9f9;
+  border-radius: 12px;
+}
+
+.empty-state-card h2 {
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.empty-state-card p {
+  color: #666;
+  margin-bottom: 25px;
+  font-size: 16px;
+}
+
 .loading-spinner {
   text-align: center;
   padding: 40px;

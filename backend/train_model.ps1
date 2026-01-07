@@ -47,3 +47,4 @@ Write-Host "Check training_log.txt for full results." -ForegroundColor Yellow
 "Total duration: $($duration.Hours) hours, $($duration.Minutes) minutes" | Out-File -FilePath "training_log.txt" -Append -Encoding utf8
 
 
+
