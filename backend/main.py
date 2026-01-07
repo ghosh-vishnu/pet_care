@@ -255,36 +255,60 @@ async def get_chat_messages_endpoint(
     if current_user_id != user_id:
         raise HTTPException(status_code=403, detail="Access denied")
     
-    from services.db_service import get_pet_by_id, create_or_update_pet_profile
+    from services.db_service import (
+        get_pet_by_id,
+        create_or_update_pet_profile,
+        get_most_recent_chat_pet,
+    )
+    # Try exact pet_id first (client-provided)
     pet = get_pet_by_id(db, user_id, pet_id)
+
+    # If not found, recover by using the user's most recent chat pet (prevents "blank history" on refresh)
+    resolved_pet_id = pet_id
     if not pet:
-        # Auto-create pet profile if it doesn't exist
-        try:
-            minimal_profile = {
-                "petName": "My Pet",
-                "breed": "Unknown",
-                "weight": "",
-                "age": "",
-                "gender": "",
-                "season": "",
-                "activityLevel": "",
-                "behaviorNotes": "",
-                "medicalConditions": [],
-                "goals": []
-            }
-            pet = create_or_update_pet_profile(db, user_id, pet_id, minimal_profile)
-            print(f"Auto-created pet profile for user {user_id}, pet_id {pet_id}")
-        except Exception as e:
-            print(f"Failed to auto-create pet: {e}")
-            import traceback
-            traceback.print_exc()
-            # Return empty messages if pet creation fails
-            return {"messages": []}
+        fallback_pet = get_most_recent_chat_pet(db, user_id)
+        if fallback_pet:
+            pet = fallback_pet
+            resolved_pet_id = fallback_pet.pet_id
+            print(f"Recovered chat pet for user {user_id}: requested pet_id={pet_id}, using pet_id={resolved_pet_id}")
+        else:
+            # As a last resort, auto-create a minimal profile so the app still works
+            try:
+                minimal_profile = {
+                    "petName": "My Pet",
+                    "breed": "Unknown",
+                    "weight": "",
+                    "age": "",
+                    "gender": "",
+                    "season": "",
+                    "activityLevel": "",
+                    "behaviorNotes": "",
+                    "medicalConditions": [],
+                    "goals": []
+                }
+                pet = create_or_update_pet_profile(db, user_id, pet_id, minimal_profile)
+                resolved_pet_id = pet_id
+                print(f"Auto-created pet profile for user {user_id}, pet_id {pet_id}")
+            except Exception as e:
+                print(f"Failed to auto-create pet: {e}")
+                import traceback
+                traceback.print_exc()
+                # Return empty messages if pet creation fails
+                return {"messages": [], "pet_id": pet_id}
     
     # Get messages for this pet
     try:
         messages = get_chat_messages(db, pet.id)
-        print(f"Retrieved {len(messages)} messages from database for pet.id={pet.id}, pet_id={pet_id}")
+        # If we got a pet but it has no messages, try fallback as well (handles cases where default pet_id points to an empty auto-created pet)
+        if len(messages) == 0:
+            fallback_pet = get_most_recent_chat_pet(db, user_id)
+            if fallback_pet and fallback_pet.id != pet.id:
+                pet = fallback_pet
+                resolved_pet_id = fallback_pet.pet_id
+                messages = get_chat_messages(db, pet.id)
+                print(f"Recovered messages via fallback pet_id={resolved_pet_id} for user {user_id}")
+
+        print(f"Retrieved {len(messages)} messages from database for pet.id={pet.id}, pet_id={resolved_pet_id}")
         messages_list = []
         for msg in messages:
             # Map sender to frontend expected format
@@ -297,13 +321,14 @@ async def get_chat_messages_endpoint(
                 "timestamp": msg.timestamp.isoformat() if msg.timestamp else None
             })
         
-        print(f"Returning {len(messages_list)} formatted messages for pet.id={pet.id}, pet_id={pet_id}")
-        return {"messages": messages_list}
+        print(f"Returning {len(messages_list)} formatted messages for pet.id={pet.id}, pet_id={resolved_pet_id}")
+        # Include resolved pet_id so frontend can persist it (prevents future refresh issues)
+        return {"messages": messages_list, "pet_id": resolved_pet_id}
     except Exception as e:
         print(f"Error retrieving messages: {e}")
         import traceback
         traceback.print_exc()
-        return {"messages": []}
+        return {"messages": [], "pet_id": pet_id}
 
 # Upload endpoints
 @app.post("/user/{user_id}/pet/{pet_id}/upload/analyze")

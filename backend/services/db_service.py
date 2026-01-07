@@ -1,7 +1,7 @@
 # db_service.py - PostgreSQL Database Service
 
 from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 from models.database_models import Pet
 from models.database_models import User, Pet, ChatMessage, UploadedImage, Report
 from typing import Optional, List, Dict
@@ -113,6 +113,29 @@ def get_chat_messages(db: Session, pet_id: int, limit: int = 100) -> List[ChatMe
     return db.query(ChatMessage).filter(
         ChatMessage.pet_id == pet_id
     ).order_by(ChatMessage.timestamp.asc()).limit(limit).all()
+
+def get_most_recent_chat_pet(db: Session, user_id: int) -> Optional[Pet]:
+    """
+    Return the Pet for this user that has the most recent chat message.
+    Used to recover chat history when the client sends an outdated/default pet_id.
+    """
+    subq = (
+        db.query(
+            ChatMessage.pet_id.label("pet_db_id"),
+            func.max(ChatMessage.timestamp).label("last_ts"),
+        )
+        .join(Pet, Pet.id == ChatMessage.pet_id)
+        .filter(Pet.user_id == user_id)
+        .group_by(ChatMessage.pet_id)
+        .subquery()
+    )
+
+    return (
+        db.query(Pet)
+        .join(subq, Pet.id == subq.c.pet_db_id)
+        .order_by(subq.c.last_ts.desc())
+        .first()
+    )
 
 # Image operations
 def create_uploaded_image(db: Session, pet_id: int, filename: str, file_path: str, 

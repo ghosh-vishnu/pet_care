@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { sendChatMessage, getChatMessages, uploadImage, uploadDocument } from '../services/api'
-import { getPetId, getUserId } from '../config'
+import { getPetId, getUserId, setPetId } from '../config'
 import { checkPetProfileStatus } from '../services/api'
 import './Chat.css'
 
@@ -61,6 +61,11 @@ function Chat() {
       
       const response = await getChatMessages(userId, petId)
       if (!silent) console.log('Loaded messages:', response)
+
+      // If backend resolved a different pet_id (recovered history), persist it for future refreshes
+      if (response?.pet_id && response.pet_id !== petId) {
+        setPetId(response.pet_id)
+      }
       
       // Handle both response formats for backward compatibility
       const messagesList = response?.messages || response || []
