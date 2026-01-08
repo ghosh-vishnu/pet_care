@@ -29,3 +29,4 @@ Write-Host "✓ All tests passed! Server should start successfully." -Foreground
 Write-Host "Run: .\start_server.ps1 to start the server" -ForegroundColor Cyan
 
 
+
