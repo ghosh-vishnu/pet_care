@@ -137,13 +137,8 @@ function PetProfile() {
     setLoading(true)
 
     try {
-      const response = await savePetProfile(userId, petId, formData)
-      // Update pet_id in localStorage if it was changed by backend
-      if (response.pet_id && response.pet_id !== petId) {
-        setPetId(response.pet_id)
-      }
-      // Navigate to dashboard after successful save
-      navigate('/dashboard')
+      await savePetProfile(userId, petId, formData)
+      navigate('/')
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to save profile. Please try again.')
     } finally {
